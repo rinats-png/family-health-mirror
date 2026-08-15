@@ -63,30 +63,29 @@ const PAIRS = [
   // Trennlinien sind keine Bedienelemente; verlangt ist nur Wahrnehmbarkeit.
   ['Trennlinie auf der Hauptfarbe', 'brand-strong', 'brand', 1.5],
   ['Kante einer Karte gegen ihre Fuellung', 'brand-line', 'surface', 3],
-  ['Kante einer Karte gegen den Verlauf', 'brand-line', 'bg-to', 3],
-  ['Kante einer Karte gegen den hellen Verlaufston', 'brand-line', 'bg-from', 3],
+  ['Kante einer Karte gegen den Hintergrund', 'brand-line', 'bg-to', 3],
+  ['Kante einer Karte gegen den hellen Hintergrundton', 'brand-line', 'bg-from', 3],
   ['Kante eines Symbolkreises auf der erhabenen Flaeche', 'brand-line', 'surface-2', 3],
   ['Aktiver Tab auf gefuellter Pille', 'action', 'surface-2', 4.5],
-  // Der Absatz Karte/Verlauf ist bewusst sehr leise (Fläche = Hauptfarbe −5 %).
-  // Er trägt die Abgrenzung nicht — das tut die Kante, geprüft mit 3:1 weiter
-  // oben. Hier wird nur sichergestellt, dass die Karte überhaupt absetzt.
-  ['Karte hebt sich vom Verlauf ab (dezent)', 'surface', 'bg-to', 1.1],
+  // Es gibt bewusst KEIN Paar 'Karte gegen Hintergrund': Im hellen Thema
+  // tragen beide dieselbe Hauptfarbe. Die Abgrenzung leistet allein die
+  // Kante — geprüft in den drei brand-line-Paaren darüber.
   ['Trennlinie in der gruppierten Liste', 'border', 'surface', 1.2],
 
   // Text auf Flächen
   ['Haupttext auf Fläche', 'text', 'surface', 4.5],
-  ['Haupttext auf dem tiefen Verlaufston', 'text', 'bg-to', 4.5],
+  ['Haupttext auf dem Hintergrund', 'text', 'bg-to', 4.5],
   ['Sekundärtext auf Fläche', 'text-secondary', 'surface', 4.5],
   ['Gedämpfter Text auf Fläche', 'text-muted', 'surface', 4.5],
-  ['Gedaempfter Text auf dem hellen Verlaufston', 'text-muted', 'bg-from', 4.5],
-  ['Gedaempfter Text auf dem tiefen Verlaufston', 'text-muted', 'bg-to', 4.5],
+  ['Gedaempfter Text auf dem hellen Hintergrundton', 'text-muted', 'bg-from', 4.5],
+  ['Gedaempfter Text auf dem Hintergrund', 'text-muted', 'bg-to', 4.5],
   ['Gedaempfter Text auf der erhabenen Flaeche', 'text-muted', 'surface-2', 4.5],
 
   // Bedienelemente
   ['Handlungsfarbe auf Fläche', 'action', 'surface', 4.5],
-  ['Handlungsfarbe auf dem tiefen Verlaufston', 'action', 'bg-to', 4.5],
+  ['Handlungsfarbe auf dem Hintergrund', 'action', 'bg-to', 4.5],
   ['Rand von Eingabefeldern auf Fläche', 'border-strong', 'surface', 3],
-  ['Rand von Eingabefeldern auf dem Verlauf', 'border-strong', 'bg-to', 3],
+  ['Rand von Eingabefeldern auf dem Hintergrund', 'border-strong', 'bg-to', 3],
 
   // Hinweisfarben — ausschließlich UI-Zustände, nie Gesundheitsinhalte
   ['Warnton auf weichem Warnhintergrund', 'warning-ink', 'warning-soft', 4.5],
@@ -96,8 +95,8 @@ const PAIRS = [
 
 /** Paare, die scheitern MÜSSEN — sie belegen, warum die Rollen getrennt sind. */
 const MUST_FAIL = [
-  ['Hauptfarbe als Text auf Weiß', 'brand', 'surface', 4.5],
-  ['Akzentfarbe als Text auf Weiß', 'accent', 'surface', 4.5],
+  ['Hauptfarbe als Text auf der hellsten Fläche', 'brand', 'surface-2', 4.5],
+  ['Akzentfarbe als Text auf der hellsten Fläche', 'accent', 'surface-2', 4.5],
 ];
 
 let failures = 0;

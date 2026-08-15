@@ -105,25 +105,32 @@ Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine Rollentrenn
 
 | Rolle | Token | Wert | Verwendung |
 |---|---|---|---|
-| Hauptfarbe, Flächen | `--brand` | `#DDC6B6` | Marken-Flächen, Symbolkreise, Herkunft des Verlaufs |
-| Verlauf | `--bg-from` / `--bg-to` | `#F7E3CC` → `#E8CBA9` | Hintergrund jedes Bildschirms |
+| Hauptfarbe | `--brand` | `#DDC6B6` | Hintergrund, Karten, Marken-Flächen — ein Ton für alles |
+| Hintergrund | `--bg-from` / `--bg-to` | `#DDC6B6` | Hintergrund jedes Bildschirms, flächig |
 | Text darauf | `--brand-ink` | `#262223` | 9,61:1 auf `--brand` |
 | Sekundärtext darauf | `--brand-muted` | `#54443A` | 5,66:1 auf `--brand` |
-| Kante von Flächen | `--brand-line` | `#6B5039` | 4,07:1 gegen die Karte, 4,78:1 gegen den Verlauf |
+| Kante von Flächen | `--brand-line` | `#6B5039` | 4,53:1 — trägt die Abgrenzung allein |
 | Trennlinie | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
-| Karte, Blatt | `--surface` | `#D2BCAD` | Hauptfarbe, 5 % abgedunkelt |
+| Karte, Blatt | `--surface` | `#DDC6B6` | Hauptfarbe unverändert — kein Tonschritt |
 | Erhabene Fläche | `--surface-2` | `#E4D2C5` | Symbolkreise, aktive Pille, Eingabefelder — heller als die Karte |
 | Handlung | `--action` | `#0D4353` | Buttons, Auswahlzustände, Fokusring |
 | Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,38:1) |
 
-**Warum die Kante eigene Aufmerksamkeit braucht — die wichtigste Lehre aus dem
-Story-Entwurf:** Eine cremefarbene Karte erreicht gegen den warmen Verlauf nur
-etwa **1,05:1**. Zwischen Karte und Hintergrund liegt praktisch kein
-Helligkeitsunterschied; im Entwurf trägt allein der weiche Schatten die
-Abgrenzung, und der verschwindet bei Sonnenlicht. Deshalb bekommt jede Fläche,
-die auf dem Verlauf liegt — Karte, Kopfzeilen-Pille, Fußnavigation,
-Symbolkreis — eine Kante in `--brand-line` mit mindestens 3:1 gegen **beide**
-Seiten.
+**Warum die Kante die gesamte Abgrenzung trägt:** Karte und Hintergrund tragen
+denselben Ton — der Helligkeitsunterschied ist exakt null. Zwei Versuche mit
+einem feinen Tonschritt (Hauptfarbe −15 %, dann −5 %) sind daran gescheitert,
+dass jede abgedunkelte Fläche als Fleck auf dem Bildschirm gelesen wird statt
+als Karte. Die Trennung leistet deshalb ausschließlich die Kante in
+`--brand-line`, mit **4,53:1** gegen beide Seiten.
+
+Daraus folgt eine harte Regel: **Eine Fläche ohne Kante existiert nicht.** Jede
+Karte, Kopfzeilen-Pille, Fußnavigation und jeder Symbolkreis bekommt
+`border: 1px solid var(--brand-line)`. Ein Schatten allein reicht nicht — der
+verschwindet bei Sonnenlicht.
+
+Bedienelemente sind davon ausgenommen: Eingabefelder, Chips, Kalendertage und
+die aktive Tab-Pille liegen auf `--surface-2` (`#E4D2C5`) und heben sich damit
+zusätzlich zur Kante ab. Sie sind antippbar, Flächen nicht.
 
 **Aktiver Zustand in der Fußnavigation** unterscheidet sich über eine gefüllte
 Pille (`--brand-soft`), den Schriftschnitt (800 statt 600) **und** die Farbe —
@@ -138,9 +145,9 @@ Karten, Kopfzeile, Fußnavigation und Blätter sind halbtransparent mit
 `backdrop-filter`. Drei Regeln dazu:
 
 1. **`--surface` ist der solide Wert und zugleich der Prüfmaßstab.** Das
-   Komposit über dem Verlauf liegt bei `#C8B29F` bis `#CDB9A9`, also *heller*
-   als der solide Wert — gegen den soliden zu rechnen ist die vorsichtige
-   Variante.
+   Weil Fläche und Hintergrund denselben Wert tragen, ist das Komposit mit
+   dem soliden Wert identisch — die Deckkraft verändert die Farbe nicht mehr,
+   nur noch die Unschärfe dahinter.
 2. **Kopfzeile und Fußnavigation nutzen `--chrome-glass` mit höherer Deckkraft**
    (0,88 statt 0,72). Dahinter scrollt Inhalt durch; bei niedriger Deckkraft
    könnte dunkler Text darunter das Komposit lokal absenken.
@@ -165,7 +172,7 @@ Verstoß mit Exit-Code 1 ab und gehört in die CI.
 ### 1.3 Nicht-Farb-Tokens
 
 ```css
---bg-from / --bg-to;                  /* Hintergrundverlauf aus der Hauptfarbe */
+--bg-from / --bg-to;                  /* Hintergrund — beide auf der Hauptfarbe */
 --radius-card: 28px;  --radius-tile: 20px;  --radius-control: 14px;  --radius-pill: 999px;
 --space-1: 4px … --space-6: 32px;     /* 4-pt-Basis, 8-pt-Raster */
 --tap: 48px;                          /* Mindest-Tap-Ziel, nicht unterschreiten */
@@ -175,9 +182,12 @@ Verstoß mit Exit-Code 1 ab und gehört in die CI.
 --shadow-tile;  --shadow-card;  --shadow-sheet;
 ```
 
-**Der Hintergrund ist ein Verlauf**, kein Flächenton: `--bg-from` oben,
-`--bg-to` unten, beide aus der Hauptfarbe abgeleitet. Prüfmaßstab für jeden
-Text, der direkt darauf steht, ist immer der **tiefere** Ton `--bg-to`.
+**Der Hintergrund ist ein Flächenton**, kein Verlauf: `--bg-from` und `--bg-to`
+stehen beide auf `#DDC6B6`. Die Verlaufs-Rolle bleibt in den Token und in
+`global.css` erhalten, damit ein Verlauf später an einer Stelle wieder
+eingeführt werden kann — sie ist derzeit nur nicht besetzt. Ein Verlauf, der
+heller läuft als die Hauptfarbe, lässt jede Fläche in der Hauptfarbe dunkler
+erscheinen; genau daran ist der erste Entwurf gescheitert.
 
 **Es gibt zwei Schriftfamilien.** `--font-display` ist eine Systemserife und
 trägt Bildschirmtitel und Kartentitel; alles andere läuft in `--font`. Keine
