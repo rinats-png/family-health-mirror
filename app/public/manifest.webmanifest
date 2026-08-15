@@ -1,0 +1,20 @@
+{
+  "name": "KinderGesundheit+",
+  "short_name": "KiGes+",
+  "description": "Krankheiten, Impfungen und Entwicklung des Kindes dokumentieren — lokal auf dem Gerät, ohne Konto.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#D9E4E8",
+  "theme_color": "#D9E4E8",
+  "lang": "de",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

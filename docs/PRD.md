@@ -762,4 +762,54 @@ Nach EU-Medizinprodukteverordnung (MDR 2017/745) kann Software zum Medizinproduk
 
 ---
 
+## 8. Änderungen aus der Marktanalyse (v1.1)
+
+Nach der Wettbewerbsanalyse (siehe [`MARKTANALYSE.md`](MARKTANALYSE.md)) wurden folgende Punkte
+gegenüber v1.0 geändert. Sie sind bereits im Prototyp umgesetzt.
+
+| # | Änderung | Auslöser |
+|---|---|---|
+| 1 | **Fieber-Modul auf Referenzqualität** — Episoden-Ansicht, Verlaufskurve, Medikamenten-Timer und **Fieberkrampf-Dokumentation** sind Must-Have | FeverApp (Uni Witten/Herdecke, BMBF-gefördert) löst genau dieses Szenario bereits sehr gut |
+| 2 | **PZN-Scan für Medikamente** als Should-Have aufgenommen | Von FeverApp übernommen; die PZN steht in Deutschland auf jeder Packung |
+| 3 | **Vorjahresvergleich auf Must-Have für v1.1 hochgestuft** | Stärkste Differenzierung überhaupt — erfordert 24+ Monate Historie in *einem* Produkt, was Baby-Tracker mit Abbruch nach dem 1. Jahr strukturell nicht liefern können |
+| 4 | **Preisversprechen schriftlich fixieren**: Bestandspreise gelten dauerhaft, der Free-Umfang wird nicht nachträglich verschlechtert | Dokumentierter Nutzerfrust nach der Umstellung von Einmalkauf auf Abo bei Baby Connect |
+| 5 | **Praxis-Anbindung als Phase-3-Ziel**, nicht als Startversprechen | ImpfPassDE hat eine etablierte, verschlüsselte Datenverbindung zu Arztpraxen — dieser Vorsprung ist kurzfristig nicht einholbar |
+| 6 | **Neuer Status „Zeitfenster abgelaufen"** neben „überfällig" | Siehe Kasten unten |
+| 7 | **Impfpass-Nachtrag-Hinweis** beim ersten Aufruf ohne erfasste Impfung | Ergab sich beim Test des Prototyps mit einem älteren Kind |
+
+> **Warum „überfällig" nicht für alles taugt:**
+> Beim Test des Prototyps mit einem dreijährigen Kind ohne erfasste Impfhistorie meldete der
+> Plan 24 Positionen als „überfällig" — darunter die Rotavirus-Schluckimpfung, deren
+> Zeitfenster im Säuglingsalter endet. Das ist fachlich irreführend und erzeugt bei Eltern
+> Alarm ohne Handlungsmöglichkeit. Positionen, deren Zeitfenster länger als 180 Tage
+> zurückliegt, bekommen deshalb den eigenen, ruhigen Status **„Zeitfenster abgelaufen"**,
+> erscheinen in einer eingeklappten Liste und nie als Handlungsaufforderung auf dem
+> Dashboard — mit dem Hinweis, das in der kinderärztlichen Sprechstunde zu besprechen.
+
+---
+
+## 9. Umsetzungsstand (Prototyp)
+
+Ein lauffähiger Prototyp liegt unter [`../app`](../app). Er setzt die Must-Haves aus §3 um.
+Abweichung von §5.2: Der Prototyp ist eine **React-PWA statt einer Flutter-App** — die
+Empfehlung Flutter für das native Release bleibt bestehen, aber eine PWA ist der schnellste
+Weg, den 10-Sekunden-Test (§7.2) mit echten Eltern zu fahren, ohne App-Store-Review.
+
+**Umgesetzt:** Onboarding ohne Konto · altersadaptives Dashboard · Speichern-zuerst-Schnelleingabe ·
+Symptome, Temperatur mit Messmethode, Schweregrad, Notiz, Foto, Fieberkrampf ·
+Medikamenten-Presets mit Sperr-Timer · automatische Episoden-Bündelung · Kalender mit Monats-
+und Jahresansicht · Impf- und Vorsorgeplan mit fünf Statusstufen · Auswertung mit
+Vorjahresvergleich · Perzentilenkurven · Schlaf-/Krankheits-Gegenüberstellung · Meilensteine ·
+Arzt-Zusammenfassung, CSV- und JSON-Export · mehrere Kinder · Dark- und Nachtmodus · Offline-Betrieb.
+
+**Nicht umgesetzt** (bewusst, für die Produktivversion): Cloud-Sync mit E2E-Verschlüsselung ·
+verschlüsselte lokale Datenbank (der Prototyp speichert unverschlüsselt in IndexedDB) ·
+OCR-Impfpass-Scan · PZN-Scan · Sprach-Eingabe · Push-Benachrichtigungen · Homescreen-Widgets ·
+Familien-Sharing.
+
+**Nicht produktivtauglich:** Impfplan-, Vorsorge- und Wachstums-Datensätze sind ungeprüfte
+Platzhalter (§5.5) und in der App als solche gekennzeichnet.
+
+---
+
 *Dieses Dokument beschreibt eine Anwendung zur Dokumentation durch Eltern. Es beschreibt kein Medizinprodukt und keine medizinische Beratung. Alle im Dokument genannten Impfungen, Zeitpunkte und Marktzahlen sind Platzhalter zur Illustration und vor der Umsetzung gegen die jeweils aktuelle Primärquelle (RKI/STIKO, G-BA, Destatis) zu prüfen. Die regulatorische Einordnung nach §5.7 ist vor Entwicklungsbeginn fachlich zu klären.*

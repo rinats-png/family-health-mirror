@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="KinderGesundheit+">
+  <rect width="512" height="512" rx="112" fill="#DDC6B6"/>
+  <path d="M256 396c-8 0-15-3-21-8-64-56-119-105-119-165 0-45 34-79 79-79 24 0 47 11 61 29 14-18 37-29 61-29 45 0 79 34 79 79 0 60-55 109-119 165-6 5-13 8-21 8z" fill="#16657E"/>
+  <path d="M256 168v128M192 232h128" stroke="#DDC6B6" stroke-width="26" stroke-linecap="round"/>
+</svg>
