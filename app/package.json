@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "check:wording": "node scripts/check-wording.mjs"
+    "check:wording": "node scripts/check-wording.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

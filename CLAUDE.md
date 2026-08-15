@@ -84,26 +84,47 @@ Themen laufen über Attribute am Wurzelelement, gesetzt in
 **Regel:** Ein neuer Token wird in **allen drei** Blöcken gepflegt. Ein Token, der
 nur im hellen Thema existiert, ist ein Bug.
 
-### 1.2 Die Farbhierarchie und warum sie von der Vorlage abweicht
+### 1.2 Die Farbhierarchie
 
-Die Vorlage nennt `#DDC6B6` als Farbe für „Buttons, Highlights". Das ist nicht
-umsetzbar: Auf Weiß erreicht `#DDC6B6` ein Kontrastverhältnis von etwa **1,4:1**,
-WCAG fordert 3:1 für Bedienelemente und 4,5:1 für Text. Ein Button in dieser Farbe
-ist bei Sonnenlicht oder mit Sehschwäche unbedienbar.
+`#DDC6B6` ist die **Hauptfarbe der Anwendung**. Sie trägt den Rahmen — Kopfzeile,
+Fußnavigation, Schnelleingabe — und ist damit auf jedem Bildschirm präsent.
 
-**Umgesetzte Trennung:**
+Als Textfarbe oder Füllung eines Bedienelements ist sie dagegen nicht verwendbar:
+Auf Weiß erreicht sie **1,64:1**, WCAG fordert 3:1 für Bedienelemente und 4,5:1 für
+Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine Rollentrennung:
 
 | Rolle | Token | Wert | Verwendung |
 |---|---|---|---|
-| Marke, Flächen | `--brand` | `#DDC6B6` | Kachelhintergrund, Ruhezonen — **immer** mit `--brand-ink` als Textfarbe |
-| Handlung | `--action` | `#16657E` | alle Buttons, aktive Zustände, Fokusring, Links |
-| Akzent | `--accent` | `#65ABC4` | Diagrammlinien, Ränder, Flächen — **nie** als Textfarbe |
+| Hauptfarbe, Flächen | `--brand` | `#DDC6B6` | Kopfzeile, Fußnavigation, Schnelleingabe, Ruhezonen |
+| Text darauf | `--brand-ink` | `#262223` | 9,61:1 auf `--brand` |
+| Sekundärtext darauf | `--brand-muted` | `#54443A` | 5,66:1 auf `--brand` |
+| Kante darauf | `--brand-line` | `#5E7178` | 3,12:1 — Bedienelemente auf `--brand` abgrenzen |
+| Trennlinie darauf | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
+| Handlung | `--action` | `#16657E` | Buttons, Auswahlzustände, Fokusring |
+| Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,57:1) |
 
-`--action` ist ein abgedunkeltes Derivat der Sekundärfarbe `#65ABC4` mit rund 5:1
-gegen Weiß. Der warme Markencharakter bleibt über die Flächen erhalten.
+**Warum die Kante auf der Marke eigene Aufmerksamkeit braucht:** Eine weiße Kachel
+erreicht gegen `#DDC6B6` nur 1,64:1. Die Füllung allein grenzt sie also nicht
+erkennbar ab — das muss die Kante leisten, deshalb `--brand-line` mit 3,12:1.
+
+**Aktiver Zustand in der Fußnavigation** unterscheidet sich über Schriftschnitt
+(800 statt 600), Textfarbe (`--brand-ink` statt `--brand-muted`) **und** einen
+Indikatorbalken in `--action-hover` — nie über Farbe allein.
 
 Kommt aus Figma ein Primärbutton in `#DDC6B6`, wird er auf `--action` gemappt und
 die Abweichung im PR vermerkt.
+
+#### Die Kontrastregel ist durchgesetzt, nicht dokumentiert
+
+```bash
+cd app && npm run check:contrast
+```
+
+Das Skript liest die Werte aus `tokens.css` — ein geänderter Token schlägt sofort
+durch — und rechnet beide Themen gegen WCAG 2.1 nach. Es prüft zusätzlich zwei
+Paare, die **scheitern müssen** (`--brand` und `--accent` als Text auf Weiß): Wenn
+die plötzlich bestehen, hat jemand die Rollentrennung aufgelöst. Bricht bei
+Verstoß mit Exit-Code 1 ab und gehört in die CI.
 
 ### 1.3 Nicht-Farb-Tokens
 
@@ -409,7 +430,7 @@ wäre eine Produktentscheidung, keine Design-Übernahme.
 | Anforderung | Umsetzung |
 |---|---|
 | Tap-Ziel ≥ 48 dp | `--tap`, gesetzt auf `.btn`, `.input`, `.chip` (76px) |
-| Kontrast WCAG AA | Handlungsfarbe `--action` ≈ 5:1; `--brand` nur als Fläche |
+| Kontrast WCAG AA | maschinell geprüft über `npm run check:contrast`, beide Themen |
 | Fokus sichtbar | globaler `:focus-visible` mit 3px `--action` |
 | Farbe nie allein | Kalendertage tragen Punkte **und** sind antippbar; Auswahl über `aria-pressed` |
 | Dynamic Type | relative Größen, kein `overflow: hidden` an Textcontainern |
@@ -495,7 +516,7 @@ lassen, dann den Screen bauen.
 3. **Vorhandene Klassen suchen** (Tabelle 2.2), bevor eine neue entsteht.
 4. **Texte nach `i18n/strings.ts`**, DE und EN, dann `npm run check:wording`.
 5. **Screen bauen**, Klassen komponieren, `aria-pressed`/`aria-current` für Zustände.
-6. **Prüfen:** `npm run build && npm run lint && npm run check:wording`.
+6. **Prüfen:** `npm run build && npm run lint && npm run check:wording && npm run check:contrast`.
 7. **Im Browser ansehen** — inklusive dunklem Thema und englischer Oberfläche.
 8. **Abweichungen vom Design im PR benennen**, insbesondere Kontrast- und
    Tap-Ziel-Korrekturen.
@@ -506,5 +527,5 @@ lassen, dann den Screen bauen.
 - Warnfarbe an einem Gesundheitsinhalt → Abschnitt 0.2
 - Neue Laufzeit-Abhängigkeit → Abschnitt 3
 - Text direkt im Screen statt in `strings.ts` → Abschnitt 7.3
-- Tap-Ziel unter 48 dp oder Text auf `--brand` mit zu geringem Kontrast → 6.3
+- Tap-Ziel unter 48 dp oder ein Farbpaar, das `check:contrast` reißt → 1.2, 6.3
 - Nur eine Sprache geliefert → 7.3

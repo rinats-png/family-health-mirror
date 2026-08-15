@@ -1,18 +1,29 @@
 /*
- * Design-System-Tokens (PRD §4.0).
+ * Design-System-Tokens.
  *
- * Zentrale Korrektur gegenüber der Ursprungsvorlage: #DDC6B6 erreicht auf Weiß
- * nur ca. 1,4:1 und ist damit als Button- oder Textfarbe unbrauchbar (WCAG
- * fordert 3:1 für Bedienelemente, 4,5:1 für Text). Die Farbe bleibt deshalb
- * Flächen- und Markenfarbe mit dunklem Text darauf; die Handlungsfarbe ist ein
- * abgedunkeltes Derivat der Sekundärfarbe #65ABC4.
+ * #DDC6B6 ist die Hauptfarbe der Anwendung. Sie trägt den Rahmen — Kopfzeile,
+ * Fußnavigation, Schnelleingabe — und ist damit auf jedem Bildschirm präsent.
+ *
+ * Als Textfarbe oder Bedienelement-Füllung ist sie dagegen nicht verwendbar:
+ * Auf Weiß erreicht sie 1,64:1, WCAG fordert 3:1 für Bedienelemente und 4,5:1
+ * für Text. Deshalb die Trennung:
+ *
+ *   --brand        Fläche. Darauf immer --brand-ink oder --brand-muted.
+ *   --action       Bedienelemente auf hellem Grund (6,57:1 gegen Weiß).
+ *   --accent       ausschließlich dekorativ, nie Text (2,57:1 gegen Weiß).
+ *
+ * Alle Paare sind in scripts/check-contrast.mjs hinterlegt und werden bei
+ * `npm run check:contrast` gegen diese Datei nachgerechnet.
  */
 
 :root {
-  /* Markenfarben — Flächen, niemals als Textfarbe auf Weiß */
+  /* Hauptfarbe — Flächen und Rahmen, niemals als Textfarbe auf Weiß */
   --brand: #ddc6b6;
   --brand-soft: #f0e5dd;
-  --brand-ink: #262223;
+  --brand-strong: #bc9c82;      /* sichtbare Kante auf --brand */
+  --brand-ink: #262223;         /* Haupttext AUF --brand — 9,61:1 */
+  --brand-muted: #54443a;       /* Sekundärtext AUF --brand — 5,66:1 */
+  --brand-line: #5e7178;        /* Kante von Bedienelementen AUF --brand — 3,12:1 */
 
   /* Handlungsfarbe: aus #65ABC4 abgedunkelt auf ca. 5:1 gegen Weiß */
   --action: #16657e;
@@ -26,7 +37,7 @@
 
   --text: #262223;
   --text-secondary: #023441;
-  --text-muted: #5a6b70;
+  --text-muted: #4e5f65;   /* 5,15:1 auf --bg, 6,67:1 auf Weiß */
 
   --warning: #e88c2b;
   --warning-ink: #6b3a00;
@@ -37,7 +48,7 @@
   --ok-soft: #e4f0ea;
 
   --border: #c8d6db;
-  --border-strong: #9fb4bb;
+  --border-strong: #6b8189;   /* 4,10:1 auf Weiß — WCAG 1.4.11 für Feldränder */
 
   --radius-tile: 16px;
   --radius-control: 12px;
@@ -63,7 +74,10 @@
 :root[data-theme='dark'] {
   --brand: #6a5749;
   --brand-soft: #332c27;
-  --brand-ink: #f2ece7;
+  --brand-strong: #8b7565;
+  --brand-ink: #f2ece7;         /* 5,84:1 auf --brand */
+  --brand-muted: #e3dad3;
+  --brand-line: #c9bdb2;
 
   --action: #7fc2da;
   --action-hover: #a5d5e6;
@@ -87,7 +101,7 @@
   --ok-soft: #163023;
 
   --border: #2e3a3e;
-  --border-strong: #47565b;
+  --border-strong: #687c84;
 
   --shadow-tile: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.6);
