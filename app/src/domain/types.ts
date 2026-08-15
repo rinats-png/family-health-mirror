@@ -1,28 +1,29 @@
 /**
- * Datenmodell nach PRD §5.3.
+ * Datenmodell.
  *
- * Für den Prototyp liegen alle Entitäten in einem einzigen, versionierten
- * State-Dokument (siehe db/idb.ts). Das hält die Persistenz trivial, macht den
- * DSGVO-Vollexport zu einem JSON.stringify und ist die Vorstufe zur späteren
- * Ende-zu-Ende-Verschlüsselung: verschlüsselt wird dann genau dieses Dokument.
- * Für die Produktivversion mit vielen tausend Einträgen pro Kind gehört das
- * auf SQLite/SQLCipher mit Indizes umgestellt.
+ * Leitsatz (siehe REGULATORY.md): Gespeichert wird ausschließlich, was der
+ * Nutzer eingegeben hat. Es gibt in diesem Modell bewusst kein Feld, das eine
+ * von der Anwendung erzeugte Bewertung, Einstufung, Fälligkeit oder Ableitung
+ * aufnehmen könnte. Wer ein solches Feld ergänzen will, muss zuerst die
+ * Prüffrage aus REGULATORY.md beantworten.
  */
 
 export type ID = string;
 /** YYYY-MM-DD */
 export type ISODate = string;
-/** Vollständiger ISO-Zeitstempel */
 export type ISODateTime = string;
 
-export type Sex = 'm' | 'f' | 'd';
+export type Sex = 'f' | 'm' | 'x';
 
-/** Feldsatz, den jeder synchronisierbare Datensatz trägt (PRD §5.3). */
+export type Locale = 'de' | 'en';
+
+export type WeightUnit = 'kg' | 'lb';
+export type LengthUnit = 'cm' | 'in';
+export type TempUnit = 'C' | 'F';
+
 export interface SyncMeta {
   createdAt: ISODateTime;
   updatedAt: ISODateTime;
-  deviceId: string;
-  /** Tombstone statt Hard-Delete, damit Löschungen synchronisierbar bleiben. */
   deleted?: boolean;
 }
 
@@ -30,177 +31,120 @@ export interface Child extends SyncMeta {
   id: ID;
   name: string;
   birthDate: ISODate;
+  /** Nur für die Auswahl der geschlechtsspezifischen Referenzkurve. */
   sex?: Sex;
-  /** Frühgeburt: aktiviert das korrigierte Alter bis 24 Monate (PRD P-05). */
-  isPreterm: boolean;
-  /** Schwangerschaftswoche bei Geburt, z. B. 34 */
-  gestationalWeeks?: number;
-  allergies: string[];
+  /** Data-URL, bleibt auf dem Gerät. */
+  photo?: string;
   color: string;
 }
 
-export type Severity = 1 | 2 | 3;
-
-export type TempMethod = 'ear' | 'forehead' | 'rectal' | 'axillary' | 'oral';
-
-export interface SymptomObservation {
-  code: string;
-  severity: Severity;
+/**
+ * Eine Schnelleintrags-Kachel und zugleich die Kategorie eines Eintrags.
+ * Farbe und Bezeichnung wählt der Nutzer — nicht die Anwendung.
+ */
+export interface Category extends SyncMeta {
+  id: ID;
+  /** Schlüssel der mitgelieferten Kacheln; bei eigenen Kacheln leer. */
+  builtInKey?: string;
+  /** Vom Nutzer vergebener Name; überschreibt die mitgelieferte Bezeichnung. */
+  customLabel?: string;
+  icon: string;
+  color: string;
+  /** Reihenfolge auf dem Startbildschirm. */
+  order: number;
+  hidden?: boolean;
 }
 
-/** Ein Krankheits-/Symptomeintrag. Entsteht bereits beim Tap auf den Quick-Chip. */
-export interface HealthEntry extends SyncMeta {
+export interface MedicationDetail {
+  /** Freier Text. Es gibt keine Wirkstoffdatenbank. */
+  name: string;
+  /** Freier Text, z. B. „5 ml". Es findet keine Berechnung statt. */
+  amount: string;
+}
+
+/** Ein Tagebucheintrag. */
+export interface Entry extends SyncMeta {
   id: ID;
   childId: ID;
   at: ISODateTime;
-  symptoms: SymptomObservation[];
-  temperature?: number;
-  tempMethod?: TempMethod;
+  categoryIds: ID[];
   note?: string;
-  /** Foto als Data-URL. Bleibt im lokalen Store, wird nie hochgeladen. */
+  /** Vom Nutzer gemessen und eingetragen. Wird nirgends eingestuft. */
+  temperature?: number;
+  temperatureUnit?: TempUnit;
+  /** Data-URL, bleibt auf dem Gerät. */
   photo?: string;
-  /** Fieberkrampf — bewusst separat erfasst, weil ärztlich hoch relevant. */
-  febrileSeizure?: boolean;
-  /** Selbsteinschätzung des Kindes, 1 (schlecht) bis 5 (gut). */
-  moodFace?: 1 | 2 | 3 | 4 | 5;
-  episodeId?: ID;
+  tags: string[];
+  medication?: MedicationDetail;
 }
 
-export type MeasurementKind = 'weight' | 'height' | 'headCirc';
+export type MeasurementKind = 'weight' | 'length' | 'headCircumference';
 
 export interface Measurement extends SyncMeta {
   id: ID;
   childId: ID;
-  at: ISODateTime;
+  date: ISODate;
   kind: MeasurementKind;
-  /** kg bei weight, cm bei height/headCirc */
+  /** Immer in der Basiseinheit gespeichert: kg bzw. cm. */
   value: number;
 }
 
 /**
- * Nutzergepflegtes Medikamenten-Preset.
- * Der Mindestabstand wird ausdrücklich vom Nutzer eingetragen — die App
- * schlägt keine Dosis und keinen Abstand vor (PRD §5.7, T-07).
+ * Erinnerung mit vom Nutzer gewähltem Text und Zeitpunkt.
+ * Die Anwendung schlägt keinen Zeitpunkt vor und errechnet keinen.
  */
-export interface MedPreset extends SyncMeta {
+export interface Reminder extends SyncMeta {
   id: ID;
-  childId: ID;
-  name: string;
-  form: string;
-  dose: string;
-  minIntervalHours: number;
-  /** Pharmazentralnummer, falls per Scan/Eingabe erfasst */
-  pzn?: string;
-}
-
-export interface MedicationEvent extends SyncMeta {
-  id: ID;
-  childId: ID;
+  childId?: ID;
   at: ISODateTime;
-  presetId?: ID;
-  name: string;
-  dose: string;
-  episodeId?: ID;
+  text: string;
+  doneAt?: ISODateTime;
 }
 
-export type FeedingKind = 'breast' | 'bottle' | 'solid';
-
-export interface FeedingEntry extends SyncMeta {
-  id: ID;
-  childId: ID;
-  at: ISODateTime;
-  kind: FeedingKind;
-  durationMin?: number;
-  side?: 'l' | 'r';
-  amountMl?: number;
-  foodItem?: string;
-  /** Erstkontakt mit einem Lebensmittel — macht Reaktionen rückverfolgbar. */
-  isFirstContact?: boolean;
-}
-
-export type DiaperKind = 'urine' | 'stool' | 'both';
-
-export interface DiaperEntry extends SyncMeta {
-  id: ID;
-  childId: ID;
-  at: ISODateTime;
-  kind: DiaperKind;
-}
-
-export interface SleepEntry extends SyncMeta {
-  id: ID;
-  childId: ID;
-  /** Ein Eintrag pro Nacht, datiert auf den Morgen danach. */
-  date: ISODate;
-  quality: 1 | 2 | 3;
-}
-
+/** Eine stattgefundene, vom Nutzer eingetragene Impfung. */
 export interface VaccinationRecord extends SyncMeta {
   id: ID;
   childId: ID;
-  /** Schlüssel aus dem STIKO-Datensatz, z. B. "6fach" */
-  vaccineCode: string;
-  doseNumber: number;
   date: ISODate;
+  /** Freier Text oder Eintrag aus der statischen Namensliste. */
+  name: string;
   batch?: string;
-  source: 'manual' | 'ocr';
+  practice?: string;
   note?: string;
 }
 
-export interface CheckupRecord extends SyncMeta {
+/** Abfotografierte Seite des Impfpasses. */
+export interface PassPhoto extends SyncMeta {
   id: ID;
   childId: ID;
-  /** z. B. "U6" */
-  checkupCode: string;
-  date: ISODate;
-  note?: string;
-}
-
-export interface MilestoneRecord extends SyncMeta {
-  id: ID;
-  childId: ID;
-  milestoneCode: string;
-  achievedDate: ISODate;
+  image: string;
+  caption?: string;
 }
 
 export interface Settings {
   activeChildId?: ID;
+  locale: Locale;
   theme: 'system' | 'light' | 'dark';
-  /** Automatischer Nachtmodus ab 21 Uhr (PRD §4.2). */
   nightMode: boolean;
-  /** Reihenfolge der Quick-Chips je Kind, lernt aus der Nutzung. */
-  chipUsage: Record<string, number>;
-  proUnlocked: boolean;
+  pro: boolean;
+  weightUnit: WeightUnit;
+  lengthUnit: LengthUnit;
+  temperatureUnit: TempUnit;
+  /** Gewählte Referenzsammlung für die Perzentilendarstellung. */
+  growthReferenceId: string;
   onboarded: boolean;
-  lastTempMethod: TempMethod;
+  /** App-Sperre aktiv (Entsperrung über Passwort). */
+  lockEnabled: boolean;
 }
 
 export interface AppState {
   schemaVersion: number;
-  deviceId: string;
   children: Child[];
-  entries: HealthEntry[];
+  categories: Category[];
+  entries: Entry[];
   measurements: Measurement[];
-  medPresets: MedPreset[];
-  medications: MedicationEvent[];
-  feedings: FeedingEntry[];
-  diapers: DiaperEntry[];
-  sleep: SleepEntry[];
+  reminders: Reminder[];
   vaccinations: VaccinationRecord[];
-  checkups: CheckupRecord[];
-  milestones: MilestoneRecord[];
+  passPhotos: PassPhoto[];
   settings: Settings;
-}
-
-/** Aus Einträgen abgeleitet, nicht persistiert (PRD T-05). */
-export interface Episode {
-  id: string;
-  childId: ID;
-  start: ISODateTime;
-  end: ISODateTime;
-  entryIds: ID[];
-  maxTemp?: number;
-  symptomCodes: string[];
-  dayCount: number;
-  hadFever: boolean;
 }

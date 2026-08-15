@@ -1,5 +1,20 @@
 # Product Requirement Document — „KinderGesundheit+"
 
+> ## ⚠️ Dieses Dokument ist in Teilen überholt
+>
+> Der Scope wurde später auf eine strikt dokumentierende Anwendung eingeengt.
+> Verbindlich ist seitdem **[`../REGULATORY.md`](../REGULATORY.md)**.
+>
+> Aus diesem PRD **nicht mehr umgesetzt** (Ausschlussliste): Impfplan-Ableitung
+> aus dem Geburtsdatum, Vorsorgeterminplan, Fälligkeitsstufen, Medikamenten-
+> Sperr-Timer, berechnetes Tageslabel, Wachstums-Trendbewertung, Fieberschwelle
+> und daraus abgeleitete Zählungen, automatische Episodenbildung sowie die
+> Gegenüberstellung von Schlaf- und Krankheitsdaten.
+>
+> Weiterhin gültig sind Personas, User Journey, die UX-Grundsätze (Eingabe unter
+> zehn Sekunden, Speichern zuerst), das Datenschutzkonzept und die
+> Farbkontrast-Korrektur.
+
 | | |
 |---|---|
 | **Produkt** | KinderGesundheit+ (Arbeitstitel) |

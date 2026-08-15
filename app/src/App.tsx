@@ -1,56 +1,28 @@
 import { useEffect, useRef, useState } from 'react';
-import { Dashboard } from './screens/Dashboard';
-import { Insights } from './screens/Insights';
+import { I18nProvider, useI18n } from './i18n';
+import { EntrySheet } from './screens/EntrySheet';
+import { History } from './screens/History';
+import { LockScreen } from './screens/LockScreen';
+import { Measurements } from './screens/Measurements';
 import { Onboarding } from './screens/Onboarding';
 import { Profile } from './screens/Profile';
-import { QuickEntrySheet } from './screens/QuickEntrySheet';
-import { Tracker } from './screens/Tracker';
+import { Today } from './screens/Today';
 import { Vaccinations } from './screens/Vaccinations';
 import { useActions, useStore } from './store/store';
-import type { HealthEntry } from './domain/types';
+import type { Entry } from './domain/types';
 
-type Tab = 'home' | 'tracker' | 'vaccines' | 'insights' | 'profile';
+type Tab = 'today' | 'history' | 'measurements' | 'vaccinations' | 'profile';
 
-const TABS: { id: Tab; label: string; icon: string }[] = [
-  { id: 'home', label: 'Übersicht', icon: '▣' },
-  { id: 'tracker', label: 'Tracker', icon: '✎' },
-  { id: 'vaccines', label: 'Impfungen', icon: '💉' },
-  { id: 'insights', label: 'Auswertung', icon: '📈' },
-  { id: 'profile', label: 'Profil', icon: '○' },
-];
-
-/** Undo-Fenster nach einem Schnelleintrag (PRD §2, Phase 3). */
 const UNDO_MS = 8000;
 
-export default function App() {
-  const { state, ready, activeChild, setActiveChild } = useStore();
+function Shell() {
+  const { t } = useI18n();
+  const { state, ready, lockState, activeChild, setActiveChild } = useStore();
   const { removeEntry } = useActions();
-  const [tab, setTab] = useState<Tab>('home');
-  const [sheetEntry, setSheetEntry] = useState<HealthEntry | null>(null);
-  const [undoEntryId, setUndoEntryId] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('today');
+  const [sheetEntry, setSheetEntry] = useState<Entry | null>(null);
+  const [undoId, setUndoId] = useState<string | null>(null);
   const undoTimer = useRef<number | undefined>(undefined);
-
-  // Thema und Nachtmodus auf dem Wurzelelement setzen.
-  useEffect(() => {
-    const root = document.documentElement;
-    const apply = () => {
-      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
-      const dark =
-        state.settings.theme === 'dark' ||
-        (state.settings.theme === 'system' && prefersDark);
-      root.dataset.theme = dark ? 'dark' : 'light';
-      const hour = new Date().getHours();
-      root.dataset.night = String(state.settings.nightMode && (hour >= 21 || hour < 6));
-    };
-    apply();
-    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
-    mq?.addEventListener?.('change', apply);
-    const interval = window.setInterval(apply, 60_000);
-    return () => {
-      mq?.removeEventListener?.('change', apply);
-      window.clearInterval(interval);
-    };
-  }, [state.settings.theme, state.settings.nightMode]);
 
   useEffect(() => () => window.clearTimeout(undoTimer.current), []);
 
@@ -58,17 +30,26 @@ export default function App() {
     return (
       <div className="app">
         <main className="app__main">
-          <p className="muted" style={{ paddingTop: 'var(--space-6)' }}>Lade …</p>
+          <p className="muted" style={{ paddingTop: 'var(--space-6)' }}>…</p>
         </main>
       </div>
     );
   }
 
+  if (lockState === 'locked') return <LockScreen />;
   if (!activeChild || !state.settings.onboarded) return <Onboarding />;
 
-  const openSheet = (entry: HealthEntry) => {
+  const tabs: { id: Tab; label: string; icon: string }[] = [
+    { id: 'today', label: t('navToday'), icon: '▣' },
+    { id: 'history', label: t('navHistory'), icon: '▤' },
+    { id: 'measurements', label: t('navMeasurements'), icon: '📈' },
+    { id: 'vaccinations', label: t('navVaccinations'), icon: '💉' },
+    { id: 'profile', label: t('navProfile'), icon: '○' },
+  ];
+
+  const openSheet = (entry: Entry) => {
     window.clearTimeout(undoTimer.current);
-    setUndoEntryId(null);
+    setUndoId(null);
     setSheetEntry(entry);
   };
 
@@ -76,9 +57,11 @@ export default function App() {
     const id = sheetEntry?.id;
     setSheetEntry(null);
     if (!id) return;
-    setUndoEntryId(id);
+    // Nur anbieten, solange der Eintrag noch existiert (im Blatt löschbar).
+    if (!state.entries.some((e) => e.id === id)) return;
+    setUndoId(id);
     window.clearTimeout(undoTimer.current);
-    undoTimer.current = window.setTimeout(() => setUndoEntryId(null), UNDO_MS);
+    undoTimer.current = window.setTimeout(() => setUndoId(null), UNDO_MS);
   };
 
   const cycleChild = () => {
@@ -93,18 +76,17 @@ export default function App() {
   return (
     <div className="app">
       <header className="topbar">
-        <button
-          type="button"
-          className="child-switch"
-          onClick={cycleChild}
-          aria-label={
-            state.children.length > 1
-              ? `Aktives Kind: ${activeChild.name}. Zum nächsten Kind wechseln.`
-              : `Aktives Kind: ${activeChild.name}. Kinder verwalten.`
-          }
-        >
+        <button type="button" className="child-switch" onClick={cycleChild} aria-label={activeChild.name}>
           <span className="avatar" style={{ background: activeChild.color }} aria-hidden>
-            {activeChild.name.slice(0, 1).toUpperCase()}
+            {activeChild.photo ? (
+              <img
+                src={activeChild.photo}
+                alt=""
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+              />
+            ) : (
+              activeChild.name.slice(0, 1).toUpperCase()
+            )}
           </span>
           <strong>{activeChild.name}</strong>
           <span aria-hidden className="muted">▾</span>
@@ -113,7 +95,7 @@ export default function App() {
         <button
           type="button"
           className="icon-btn"
-          aria-label="Profil und Einstellungen"
+          aria-label={t('navProfile')}
           onClick={() => setTab('profile')}
         >
           ⚙
@@ -121,50 +103,78 @@ export default function App() {
       </header>
 
       <main className="app__main">
-        {tab === 'home' && (
-          <Dashboard child={activeChild} onQuickEntry={openSheet} onNavigate={setTab} />
-        )}
-        {tab === 'tracker' && <Tracker child={activeChild} onOpenEntry={openSheet} />}
-        {tab === 'vaccines' && <Vaccinations child={activeChild} />}
-        {tab === 'insights' && <Insights child={activeChild} />}
+        {tab === 'today' && <Today child={activeChild} onOpenEntry={openSheet} />}
+        {tab === 'history' && <History child={activeChild} onOpenEntry={openSheet} />}
+        {tab === 'measurements' && <Measurements child={activeChild} />}
+        {tab === 'vaccinations' && <Vaccinations child={activeChild} />}
         {tab === 'profile' && <Profile child={activeChild} />}
       </main>
 
-      <nav className="tabbar" aria-label="Hauptnavigation">
-        {TABS.map((t) => (
+      <nav className="tabbar" aria-label={t('appName')}>
+        {tabs.map((x) => (
           <button
-            key={t.id}
+            key={x.id}
             type="button"
             className="tabbar__item"
-            aria-current={tab === t.id}
-            onClick={() => setTab(t.id)}
+            aria-current={tab === x.id}
+            onClick={() => setTab(x.id)}
           >
-            <span className="tabbar__icon" aria-hidden>{t.icon}</span>
-            <span>{t.label}</span>
+            <span className="tabbar__icon" aria-hidden>{x.icon}</span>
+            <span>{x.label}</span>
           </button>
         ))}
       </nav>
 
-      {sheetEntry && (
-        <QuickEntrySheet entry={sheetEntry} child={activeChild} onClose={closeSheet} />
-      )}
+      {sheetEntry && <EntrySheet entry={sheetEntry} onClose={closeSheet} />}
 
-      {undoEntryId && (
+      {undoId && (
         <div className="toast" role="status">
-          <span>Eintrag gespeichert</span>
+          <span>{t('entrySaved')}</span>
           <button
             type="button"
             className="toast__action"
             onClick={() => {
-              removeEntry(undoEntryId);
-              setUndoEntryId(null);
+              removeEntry(undoId);
+              setUndoId(null);
               window.clearTimeout(undoTimer.current);
             }}
           >
-            Rückgängig
+            {t('undo')}
           </button>
         </div>
       )}
     </div>
+  );
+}
+
+export default function App() {
+  const { state } = useStore();
+
+  // Thema und Nachtmodus auf dem Wurzelelement setzen.
+  useEffect(() => {
+    const root = document.documentElement;
+    const apply = () => {
+      const prefersDark = window.matchMedia?.('(prefers-color-scheme: dark)').matches;
+      const dark =
+        state.settings.theme === 'dark' || (state.settings.theme === 'system' && prefersDark);
+      root.dataset.theme = dark ? 'dark' : 'light';
+      const hour = new Date().getHours();
+      root.dataset.night = String(state.settings.nightMode && (hour >= 21 || hour < 6));
+      root.lang = state.settings.locale;
+    };
+    apply();
+    const mq = window.matchMedia?.('(prefers-color-scheme: dark)');
+    mq?.addEventListener?.('change', apply);
+    const interval = window.setInterval(apply, 60_000);
+    return () => {
+      mq?.removeEventListener?.('change', apply);
+      window.clearInterval(interval);
+    };
+  }, [state.settings.theme, state.settings.nightMode, state.settings.locale]);
+
+  return (
+    <I18nProvider locale={state.settings.locale}>
+      <Shell />
+    </I18nProvider>
   );
 }

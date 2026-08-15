@@ -1,0 +1,460 @@
+/**
+ * Sprachschicht.
+ *
+ * Die Wortliste aus der Aufgabenstellung (Abschnitt 5) gilt in beiden Sprachen.
+ * Verboten sind insbesondere: Diagnose/diagnosis, Befund/finding, Symptom,
+ * Gesundheitsstatus/health status, Score, Normbereich/normal range,
+ * auffällig/abnormal, überwachen/monitor, empfohlen/recommended,
+ * erkennt/detects, analysiert/analyses, wertet aus/assesses, Therapie/therapy.
+ *
+ * Wer hier einen Text ergänzt, prüft ihn gegen diese Liste — im Englischen
+ * ebenso wie im Deutschen. `npm run check:wording` prüft das automatisch.
+ */
+
+export const STRINGS = {
+  de: {
+    appName: 'Kinder-Gesundheitstagebuch',
+    appShort: 'Tagebuch',
+
+    // Navigation
+    navToday: 'Heute',
+    navHistory: 'Verlauf',
+    navMeasurements: 'Messwerte',
+    navVaccinations: 'Impfungen',
+    navProfile: 'Profil',
+
+    // Allgemein
+    save: 'Speichern',
+    cancel: 'Abbrechen',
+    delete: 'Löschen',
+    done: 'Fertig',
+    add: 'Hinzufügen',
+    edit: 'Bearbeiten',
+    close: 'Schließen',
+    back: 'Zurück',
+    optional: 'optional',
+    today: 'heute',
+    yesterday: 'gestern',
+    none: 'keine',
+    all: 'Alle',
+    search: 'Suchen',
+    filter: 'Filter',
+    undo: 'Rückgängig',
+    pro: 'Pro',
+    notes: 'Notiz',
+    photo: 'Foto',
+    tags: 'Tags',
+    time: 'Zeitpunkt',
+    date: 'Datum',
+    name: 'Name',
+
+    // Onboarding
+    obTitle: 'Kinder-Gesundheitstagebuch',
+    obLead:
+      'Ein privates Tagebuch für das, was Sie zur Gesundheit Ihres Kindes festhalten möchten. Alles bleibt auf diesem Gerät.',
+    obPoint1Title: 'Ohne Konto',
+    obPoint1Body: 'Keine Registrierung, keine E-Mail-Adresse, kein Server.',
+    obPoint2Title: 'In unter zehn Sekunden festgehalten',
+    obPoint2Body: 'Ein Tippen auf eine Kachel legt den Eintrag mit Zeitstempel an.',
+    obPoint3Title: 'Nur Ihre Eingaben',
+    obPoint3Body:
+      'Die App zeigt und listet, was Sie eintragen. Sie bewertet nichts und leitet nichts ab.',
+    obStart: 'Beginnen',
+    obChildTitle: 'Kind anlegen',
+    obChildLead: 'Mehr als diese Angaben braucht es nicht.',
+    obNameLabel: 'Rufname',
+    obNamePlaceholder: 'Ein Spitzname genügt',
+    obNameHint: 'Der bürgerliche Name ist nicht nötig.',
+    obBirthLabel: 'Geburtsdatum',
+
+    // Heute
+    quickEntry: 'Schnelleintrag',
+    quickEntryHint:
+      'Ein Tippen genügt — der Eintrag ist sofort gespeichert. Ergänzen können Sie danach.',
+    recentEntries: 'Letzte Einträge',
+    noEntriesYet: 'Noch keine Einträge.',
+    entrySaved: 'Eintrag gespeichert',
+    moreTile: 'weitere',
+    remindersTitle: 'Ihre Erinnerungen',
+    reminderAdd: 'Erinnerung anlegen',
+    reminderText: 'Text',
+    reminderTextPlaceholder: 'z. B. nächste Gabe 18:00',
+    reminderHint:
+      'Text und Zeitpunkt legen Sie selbst fest. Die App schlägt keinen Zeitpunkt vor.',
+    reminderNone: 'Keine Erinnerungen gesetzt.',
+    reminderDone: 'Erledigt',
+
+    // Eintrag
+    entryTitle: 'Eintrag',
+    entrySavedAt: 'Eingetragen',
+    entryCategories: 'Kategorien',
+    entryTemperature: 'Gemessene Temperatur',
+    entryTemperatureHint:
+      'Der Wert wird so übernommen, wie Sie ihn eintragen. Er wird nicht eingestuft.',
+    entryNotePlaceholder: 'Was möchten Sie festhalten?',
+    entryMedication: 'Medikament',
+    entryMedicationName: 'Präparat',
+    entryMedicationNamePlaceholder: 'freier Text',
+    entryMedicationAmount: 'Menge',
+    entryMedicationAmountPlaceholder: 'z. B. 5 ml',
+    entryMedicationHint:
+      'Reines Protokoll. Die App führt keine Präparateliste und berechnet nichts.',
+    entryTagsPlaceholder: 'Tag hinzufügen',
+    entryPhotoHint: 'Das Foto bleibt auf diesem Gerät.',
+    entryChangeTime: 'Zeitpunkt ändern',
+    entryDelete: 'Eintrag löschen',
+
+    // Verlauf
+    historyTitle: 'Verlauf',
+    viewMonth: 'Monat',
+    viewYear: 'Jahr',
+    entriesOnDay: 'Einträge an diesem Tag',
+    noEntriesOnDay: 'Keine Einträge an diesem Tag.',
+    entryCount: 'Einträge im Zeitraum',
+    searchPlaceholder: 'In Notizen und Tags suchen',
+    filterCategory: 'Kategorie',
+    filterFrom: 'von',
+    filterTo: 'bis',
+    filterReset: 'Filter zurücksetzen',
+    legendHasEntries: 'Tag mit Einträgen',
+    legendNoEntries: 'Tag ohne Einträge',
+    legendHint: 'Die Farbe entspricht der von Ihnen gewählten Kategorie.',
+
+    // Messwerte
+    measurementsTitle: 'Messwerte',
+    kindWeight: 'Gewicht',
+    kindLength: 'Körperlänge',
+    kindHead: 'Kopfumfang',
+    addMeasurement: 'Messwert eintragen',
+    referenceSystem: 'Referenzkurven',
+    referenceHint:
+      'Referenzkurven dienen der Einordnung im Bevölkerungsvergleich. Die Beurteilung der Entwicklung Ihres Kindes gehört in die Hand Ihrer Kinderärztin oder Ihres Kinderarztes.',
+    referenceUnavailable: 'Datensatz nicht hinterlegt',
+    referenceLicenseOpen: 'Lizenz ungeklärt — nicht ausgeliefert',
+    referenceProOnly: 'In Pro enthalten',
+    noMeasurements: 'Noch keine Messwerte eingetragen.',
+    percentileLabel: 'Perzentilwert',
+    percentileOutOfRange: 'außerhalb des Altersbereichs der Kurve',
+    measurementsOutsideRange:
+      'Für dieses Alter enthält die gewählte Kurve keine Werte. Die Messwerte werden weiterhin gespeichert und in der Liste geführt.',
+    sexNeeded:
+      'Für die geschlechtsspezifische Kurve fehlt die Angabe im Profil. Die Messwerte werden trotzdem gespeichert.',
+
+    // Impfungen
+    vaccinationsTitle: 'Impfungen',
+    vaccinationsLead: 'Ihre eigenen Eintragungen und Fotos des Impfpasses.',
+    vaccinationAdd: 'Impfung eintragen',
+    vaccinationName: 'Bezeichnung',
+    vaccinationNamePlaceholder: 'freier Text oder aus der Liste wählen',
+    vaccinationBatch: 'Chargennummer',
+    vaccinationPractice: 'Praxis oder Ärztin/Arzt',
+    vaccinationNone: 'Noch nichts eingetragen.',
+    passPhotos: 'Fotos des Impfpasses',
+    passPhotoAdd: 'Seite fotografieren oder auswählen',
+    passPhotoNone: 'Noch keine Seiten hinterlegt.',
+    passPhotoCaption: 'Bezeichnung der Seite',
+    vaccinationNeutralNote:
+      'Welche Impfungen für Ihr Kind infrage kommen, besprechen Sie bitte mit Ihrer Kinderärztin oder Ihrem Kinderarzt. Diese App führt darüber keine Liste und gleicht nichts ab.',
+
+    // Profil
+    profileTitle: 'Profil',
+    children: 'Kinder',
+    childAdd: 'Weiteres Kind',
+    childActive: 'aktiv',
+    childSwitch: 'Wechseln',
+    childDeleteConfirm:
+      'Dieses Kind und alle zugehörigen Einträge, Messwerte, Impfeintragungen und Fotos unwiderruflich löschen?',
+    childSex: 'Geschlecht',
+    childSexHint: 'Wird nur für die Auswahl der Referenzkurve verwendet.',
+    sexFemale: 'weiblich',
+    sexMale: 'männlich',
+    sexOther: 'divers',
+    sexUnset: 'ohne Angabe',
+    childPhoto: 'Foto',
+
+    tilesTitle: 'Schnelleintrags-Kacheln',
+    tilesHint: 'Umbenennen, ergänzen, ausblenden — ganz nach Ihrem Alltag.',
+    tileNew: 'Eigene Kachel',
+    tileLabel: 'Bezeichnung',
+    tileHide: 'Ausblenden',
+    tileShow: 'Einblenden',
+
+    unitsTitle: 'Einheiten',
+    appearance: 'Darstellung',
+    themeSystem: 'System',
+    themeLight: 'Hell',
+    themeDark: 'Dunkel',
+    nightModeLabel: 'Nachtmodus ab 21 Uhr (gedimmt, ohne Bewegung)',
+    language: 'Sprache',
+
+    security: 'Sicherheit',
+    lockTitle: 'App-Sperre mit Passwort',
+    lockHint:
+      'Mit Passwort werden die Daten auf diesem Gerät verschlüsselt gespeichert (AES-GCM). Ohne Passwort lassen sie sich nicht wiederherstellen — es gibt keine Zurücksetzung.',
+    lockEnable: 'Sperre einrichten',
+    lockDisable: 'Sperre aufheben',
+    lockPassword: 'Passwort',
+    lockPasswordRepeat: 'Passwort wiederholen',
+    lockMismatch: 'Die Passwörter stimmen nicht überein.',
+    lockTooShort: 'Mindestens acht Zeichen.',
+    lockUnlockTitle: 'Entsperren',
+    lockUnlock: 'Entsperren',
+    lockWrong: 'Passwort nicht korrekt.',
+
+    dataTitle: 'Daten',
+    exportPdf: 'PDF erstellen',
+    exportJson: 'Datenexport (JSON)',
+    exportCsv: 'Datenexport (CSV)',
+    importJson: 'Daten importieren',
+    deleteAll: 'Alle Daten löschen',
+    deleteAllConfirm: 'Wirklich alle Daten dieser App unwiderruflich löschen?',
+    dataHint:
+      'Alle Daten liegen auf diesem Gerät. Es gibt kein Konto und keine Übertragung an einen Server.',
+
+    proTitle: 'Pro',
+    proBody:
+      'Kostenlos: ein Kind, unbegrenzte Einträge, Kalender, Messwerte mit einer Referenz, Impfliste, PDF mit Wasserzeichen. Pro: mehrere Kinder, alle Referenzen, eigene Kacheln, unbegrenzte Fotoanhänge, PDF ohne Wasserzeichen, Datenexport.',
+    proEnable: 'Pro freischalten (Test, ohne Zahlung)',
+    proDisable: 'Pro deaktivieren',
+    proNeededChild: 'Mehrere Kinder sind in Pro enthalten.',
+    proNeededTiles: 'Eigene Kacheln sind in Pro enthalten.',
+    proNeededExport: 'Der Datenexport ist in Pro enthalten.',
+
+    // Export
+    exportTitle: 'PDF erstellen',
+    exportRange: 'Zeitraum',
+    exportInclude: 'Enthalten',
+    exportIncludeEntries: 'Einträge',
+    exportIncludeMeasurements: 'Messwerttabelle',
+    exportIncludeChart: 'Perzentildiagramm',
+    exportIncludeVaccinations: 'Impfeintragungen',
+    exportOpen: 'PDF öffnen',
+    exportHeader: 'Elterngeführte Dokumentation. Keine ärztliche Bewertung.',
+    exportWatermark: 'Kostenlose Version',
+    exportPrint: 'Drucken oder als PDF sichern',
+    exportHint:
+      'Das Dokument wird auf diesem Gerät erzeugt und über den Druckdialog gesichert. Es werden keine Daten übertragen.',
+
+    // Fußzeile
+    purposeShort:
+      'Dieses Tagebuch hält fest, was Sie eintragen. Es stellt keine Diagnosen, gibt keine Handlungsempfehlungen und bewertet die Einträge nicht. Es ersetzt keine ärztliche Untersuchung, Beratung oder Behandlung.',
+  },
+
+  en: {
+    appName: "Children's Health Diary",
+    appShort: 'Diary',
+
+    navToday: 'Today',
+    navHistory: 'History',
+    navMeasurements: 'Measurements',
+    navVaccinations: 'Vaccinations',
+    navProfile: 'Profile',
+
+    save: 'Save',
+    cancel: 'Cancel',
+    delete: 'Delete',
+    done: 'Done',
+    add: 'Add',
+    edit: 'Edit',
+    close: 'Close',
+    back: 'Back',
+    optional: 'optional',
+    today: 'today',
+    yesterday: 'yesterday',
+    none: 'none',
+    all: 'All',
+    search: 'Search',
+    filter: 'Filter',
+    undo: 'Undo',
+    pro: 'Pro',
+    notes: 'Note',
+    photo: 'Photo',
+    tags: 'Tags',
+    time: 'Time',
+    date: 'Date',
+    name: 'Name',
+
+    obTitle: "Children's Health Diary",
+    obLead:
+      'A private diary for whatever you want to write down about your child. Everything stays on this device.',
+    obPoint1Title: 'No account',
+    obPoint1Body: 'No sign-up, no email address, no server.',
+    obPoint2Title: 'Written down in under ten seconds',
+    obPoint2Body: 'One tap on a tile creates a time-stamped record.',
+    obPoint3Title: 'Only what you type',
+    obPoint3Body:
+      'The app shows and lists your records. It does not assess them and does not derive anything from them.',
+    obStart: 'Get started',
+    obChildTitle: 'Add a child',
+    obChildLead: 'Nothing beyond this is required.',
+    obNameLabel: 'Name used at home',
+    obNamePlaceholder: 'A nickname is fine',
+    obNameHint: 'The legal name is not needed.',
+    obBirthLabel: 'Date of birth',
+
+    quickEntry: 'Quick record',
+    quickEntryHint:
+      'One tap is enough — the record is saved right away. You can add details afterwards.',
+    recentEntries: 'Recent records',
+    noEntriesYet: 'No records yet.',
+    entrySaved: 'Record saved',
+    moreTile: 'more',
+    remindersTitle: 'Your reminders',
+    reminderAdd: 'Add a reminder',
+    reminderText: 'Text',
+    reminderTextPlaceholder: 'e.g. next dose 6 pm',
+    reminderHint: 'You set the text and the time yourself. The app suggests no time.',
+    reminderNone: 'No reminders set.',
+    reminderDone: 'Done',
+
+    entryTitle: 'Record',
+    entrySavedAt: 'Recorded',
+    entryCategories: 'Categories',
+    entryTemperature: 'Measured temperature',
+    entryTemperatureHint:
+      'The value is stored exactly as you type it. It is not classified.',
+    entryNotePlaceholder: 'What would you like to write down?',
+    entryMedication: 'Medicine',
+    entryMedicationName: 'Product',
+    entryMedicationNamePlaceholder: 'free text',
+    entryMedicationAmount: 'Amount',
+    entryMedicationAmountPlaceholder: 'e.g. 5 ml',
+    entryMedicationHint:
+      'A plain log. The app keeps no product database and calculates nothing.',
+    entryTagsPlaceholder: 'Add a tag',
+    entryPhotoHint: 'The photo stays on this device.',
+    entryChangeTime: 'Change the time',
+    entryDelete: 'Delete record',
+
+    historyTitle: 'History',
+    viewMonth: 'Month',
+    viewYear: 'Year',
+    entriesOnDay: 'Records on this day',
+    noEntriesOnDay: 'No records on this day.',
+    entryCount: 'Records in this period',
+    searchPlaceholder: 'Search notes and tags',
+    filterCategory: 'Category',
+    filterFrom: 'from',
+    filterTo: 'to',
+    filterReset: 'Reset filters',
+    legendHasEntries: 'Day with records',
+    legendNoEntries: 'Day without records',
+    legendHint: 'The colour is the one you picked for the category.',
+
+    measurementsTitle: 'Measurements',
+    kindWeight: 'Weight',
+    kindLength: 'Body length',
+    kindHead: 'Head circumference',
+    addMeasurement: 'Add a measurement',
+    referenceSystem: 'Reference curves',
+    referenceHint:
+      'Reference curves place a value within a population comparison. Judging your child’s development belongs with your paediatrician.',
+    referenceUnavailable: 'Dataset not included',
+    referenceLicenseOpen: 'Licence unresolved — not shipped',
+    referenceProOnly: 'Included in Pro',
+    noMeasurements: 'No measurements entered yet.',
+    percentileLabel: 'Percentile value',
+    percentileOutOfRange: 'outside the age range of the curve',
+    measurementsOutsideRange:
+      'The selected curve holds no values for this age. Measurements are still stored and listed.',
+    sexNeeded:
+      'The profile has no entry for the sex-specific curve. Measurements are stored regardless.',
+
+    vaccinationsTitle: 'Vaccinations',
+    vaccinationsLead: 'Your own entries and photos of the vaccination booklet.',
+    vaccinationAdd: 'Add a vaccination',
+    vaccinationName: 'Name',
+    vaccinationNamePlaceholder: 'free text or pick from the list',
+    vaccinationBatch: 'Batch number',
+    vaccinationPractice: 'Practice or doctor',
+    vaccinationNone: 'Nothing entered yet.',
+    passPhotos: 'Photos of the booklet',
+    passPhotoAdd: 'Photograph or choose a page',
+    passPhotoNone: 'No pages stored yet.',
+    passPhotoCaption: 'Name of the page',
+    vaccinationNeutralNote:
+      'Please discuss with your paediatrician which vaccinations apply to your child. This app keeps no such list and compares nothing.',
+
+    profileTitle: 'Profile',
+    children: 'Children',
+    childAdd: 'Another child',
+    childActive: 'active',
+    childSwitch: 'Switch',
+    childDeleteConfirm:
+      'Permanently delete this child together with all records, measurements, vaccination entries and photos?',
+    childSex: 'Sex',
+    childSexHint: 'Used only to pick the reference curve.',
+    sexFemale: 'female',
+    sexMale: 'male',
+    sexOther: 'other',
+    sexUnset: 'not stated',
+    childPhoto: 'Photo',
+
+    tilesTitle: 'Quick-record tiles',
+    tilesHint: 'Rename, add, hide — whatever fits your day.',
+    tileNew: 'Your own tile',
+    tileLabel: 'Label',
+    tileHide: 'Hide',
+    tileShow: 'Show',
+
+    unitsTitle: 'Units',
+    appearance: 'Appearance',
+    themeSystem: 'System',
+    themeLight: 'Light',
+    themeDark: 'Dark',
+    nightModeLabel: 'Night mode from 9 pm (dimmed, no motion)',
+    language: 'Language',
+
+    security: 'Security',
+    lockTitle: 'App lock with a password',
+    lockHint:
+      'With a password the data on this device is stored encrypted (AES-GCM). Without the password it cannot be recovered — there is no reset.',
+    lockEnable: 'Set up the lock',
+    lockDisable: 'Remove the lock',
+    lockPassword: 'Password',
+    lockPasswordRepeat: 'Repeat the password',
+    lockMismatch: 'The passwords do not match.',
+    lockTooShort: 'At least eight characters.',
+    lockUnlockTitle: 'Unlock',
+    lockUnlock: 'Unlock',
+    lockWrong: 'That password is not correct.',
+
+    dataTitle: 'Data',
+    exportPdf: 'Create a PDF',
+    exportJson: 'Data export (JSON)',
+    exportCsv: 'Data export (CSV)',
+    importJson: 'Import data',
+    deleteAll: 'Delete all data',
+    deleteAllConfirm: 'Permanently delete all data in this app?',
+    dataHint:
+      'All data stays on this device. There is no account and no transfer to a server.',
+
+    proTitle: 'Pro',
+    proBody:
+      'Free: one child, unlimited records, calendar, measurements with one reference, vaccination list, PDF with a watermark. Pro: several children, all references, your own tiles, unlimited photo attachments, PDF without a watermark, data export.',
+    proEnable: 'Unlock Pro (test, no payment)',
+    proDisable: 'Turn Pro off',
+    proNeededChild: 'Several children are included in Pro.',
+    proNeededTiles: 'Your own tiles are included in Pro.',
+    proNeededExport: 'Data export is included in Pro.',
+
+    exportTitle: 'Create a PDF',
+    exportRange: 'Period',
+    exportInclude: 'Included',
+    exportIncludeEntries: 'Records',
+    exportIncludeMeasurements: 'Measurement table',
+    exportIncludeChart: 'Percentile chart',
+    exportIncludeVaccinations: 'Vaccination entries',
+    exportOpen: 'Open the PDF',
+    exportHeader: 'Parent-kept documentation. No medical assessment.',
+    exportWatermark: 'Free version',
+    exportPrint: 'Print or save as PDF',
+    exportHint:
+      'The document is produced on this device and saved through the print dialog. No data is transmitted.',
+
+    purposeShort:
+      'This diary records what you type in. It makes no diagnoses, gives no advice on what to do and does not assess your records. It does not replace medical examination, consultation or treatment.',
+  },
+} as const;
+
+export type StringKey = keyof (typeof STRINGS)['de'];

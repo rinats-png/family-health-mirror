@@ -1,67 +1,103 @@
-# family-health-mirror
+# Kinder-Gesundheitstagebuch
 
-**KinderGesundheit+** — Konzept und lauffähiger Prototyp einer App, mit der Eltern
-Krankheiten, Impfungen und Entwicklung ihres Kindes von der Geburt bis ins Grundschulalter
-dokumentieren.
+Ein privates, elternseitig geführtes Tagebuch zur Dokumentation von Beobachtungen,
+Messwerten und Ereignissen rund um die Gesundheit des eigenen Kindes.
 
-## Inhalt
+> **Die Anwendung erfasst, speichert, stellt dar und exportiert das, was Eltern
+> selbst eintragen. Sie bewertet nichts, empfiehlt nichts, prognostiziert nichts
+> und leitet nichts ab.**
+>
+> Verbindlich für jede Änderung: **[`REGULATORY.md`](REGULATORY.md)**
 
-| Was | Wo |
-|---|---|
-| Product Requirement Document | [`docs/PRD.md`](docs/PRD.md) |
-| Wettbewerbsanalyse und Differenzierung | [`docs/MARKTANALYSE.md`](docs/MARKTANALYSE.md) |
-| Lauffähiger Prototyp (React-PWA) | [`app/`](app/) — [README](app/README.md) |
+| Heute | Verlauf | Messwerte | Impfungen |
+|---|---|---|---|
+| ![Heute](docs/screenshot-heute.png) | ![Verlauf](docs/screenshot-verlauf.png) | ![Messwerte](docs/screenshot-messwerte.png) | ![Impfungen](docs/screenshot-impfungen.png) |
 
 ```bash
 cd app && npm install && npm run dev
 ```
 
-| Dashboard | Schnelleingabe | Tracker | Impfungen |
-|---|---|---|---|
-| ![Dashboard](docs/screenshot-dashboard.png) | ![Schnelleingabe](docs/screenshot-schnelleingabe.png) | ![Tracker](docs/screenshot-tracker.png) | ![Impfungen](docs/screenshot-impfungen.png) |
+## Inhalt
 
-## Kurzfassung
+| Was | Wo |
+|---|---|
+| **Abgrenzungsdokumentation** — Zweckbestimmung, Ausschlussliste, Begründung | [`REGULATORY.md`](REGULATORY.md) |
+| Anwendung (React + TypeScript, local-first) | [`app/`](app/) · [README](app/README.md) |
+| Store-Texte Deutsch | [`store/store-listing-de.md`](store/store-listing-de.md) |
+| Store-Texte Englisch | [`store/store-listing-en.md`](store/store-listing-en.md) |
+| Datenschutzerklärung (Entwurf) | [`docs/DATENSCHUTZ.md`](docs/DATENSCHUTZ.md) |
+| Marktanalyse (früherer Stand) | [`docs/MARKTANALYSE.md`](docs/MARKTANALYSE.md) |
+| PRD (früherer Stand, in Teilen überholt) | [`docs/PRD.md`](docs/PRD.md) |
 
-* **Zielgruppe:** Eltern in Deutschland mit Kindern von 0 bis 10 Jahren
-* **Kernidee:** altersadaptives Tracking + STIKO-/U-Untersuchungs-Manager + verständliche
-  Auswertungen + Arzt-Export — in *einem* Produkt statt in vier
-* **Architekturprinzip:** local-first, kein Konto, keine Werbung, keine Tracking-SDKs
-* **Bewusst ausgeschlossen:** Diagnose, Triage, Dosierungsrechner — die App dokumentiert und
-  stellt dar, sie bewertet nicht
+## Funktionsumfang
 
-## Die Marktlücke in einem Satz
+**Tagebuch.** Schnelleintragskacheln für Fieber, Husten, Schnupfen, Erbrechen,
+Durchfall, Hautausschlag, Schmerzen, unruhigen Schlaf, Medikamentengabe und
+Arztbesuch — umbenennbar, ergänzbar, ausblendbar. Ein Tippen legt den Eintrag mit
+Zeitstempel an; Notiz, gemessene Temperatur, Foto und Tags sind freiwillige
+Ergänzung.
 
-Der Markt zerfällt in vier Segmente — Baby-Tracker (enden nach dem ersten Jahr),
-Impfpass-Apps (nur Impfungen), Krankheits-Spezialisten wie FeverApp (nur Fieber) und
-Kassen-Apps (kassengebunden). Eine Familie mit zwei Kindern nutzt heute drei bis vier davon
-parallel plus Papier. Details in der [Marktanalyse](docs/MARKTANALYSE.md).
+**Medikamentenprotokoll.** Präparat und Menge als freier Text mit Zeitstempel.
+Keine Wirkstoffdatenbank, keine Berechnung, kein Intervall.
 
-## Was die App wesentlich besser macht
+**Erinnerungen.** Text und Zeitpunkt legt der Nutzer fest.
 
-1. **Durchgehende Historie.** Der Vorjahresvergleich („5 Infekte seit Kita-Start, im
-   Vorjahreszeitraum 2") setzt 24+ Monate Daten in einem Produkt voraus — ein Zeitgraben, den
-   Wettbewerber nicht per Feature-Update schließen können.
-2. **Speichern zuerst.** Der Tap auf den Chip *ist* der Eintrag. Wer das Formular wegwischt,
-   verliert nichts — das eliminiert die häufigste Ursache für Datenlücken.
-3. **Der Arzt-Export als Produkt.** Eine Seite, in 15 Sekunden erfassbar, optimiert für
-   jemanden, der die App nie installieren wird — und zugleich der stärkste
-   Weiterempfehlungskanal.
-4. **Vertrauensarchitektur.** Kein Konto, keine E-Mail, keine Werbe-SDKs, kostenloser
-   Vollexport.
+**Kalender.** Monats- und Jahresansicht, Tage mit Einträgen tragen Punkte in der
+Farbe der selbst gewählten Kategorie. Suche und Filter über Zeitraum, Kategorie,
+Tag und Freitext.
 
-## Vor der Umsetzung zu klären
+**Messwerte.** Gewicht, Körperlänge, Kopfumfang auf einer wählbaren Referenzkurve,
+mit beschrifteten Linien (P3/P10/P50/P90/P97) und neutralem Perzentilwert.
 
-1. MDR-Einstufung (Medizinprodukt ja/nein) durch eine spezialisierte Kanzlei — blockierend
-2. Kontrastwerte des Farbsystems messen und die Handlungsfarbe festlegen — blockierend fürs Design
-3. Versionierten STIKO-Datensatz aufbauen und die jährliche Pflege verantwortlich zuweisen
-4. Datenschutz-Folgenabschätzung ansetzen
+**Impfübersicht.** Manuell geführte Liste plus Fotos des Impfpasses. Keine
+Fälligkeiten, keine Vollständigkeitsprüfung, kein Abgleich mit einem Impfplan.
 
-Details in [§7 des PRD](docs/PRD.md#7-nächste-schritte).
+**Export.** PDF mit Rohdatentabellen und der Kopfzeile „Elterngeführte
+Dokumentation. Keine ärztliche Bewertung." Dazu JSON und CSV.
 
-> **Hinweis zum Prototyp:** Impfplan-, Vorsorge- und Wachstumsdaten sind ungeprüfte
-> Platzhalter und in der App als solche gekennzeichnet. Die lokale Datenbank ist noch nicht
-> verschlüsselt.
+**Technik.** Local-first, kein Konto, kein Server, keine Werbung, keine
+Tracking-Bausteine. Offline vollständig nutzbar. Deutsch und Englisch. Auf Wunsch
+App-Sperre mit Passwort und AES-GCM-Verschlüsselung auf dem Gerät.
+
+## Was bewusst fehlt
+
+Kein berechneter Gesundheitswert. Keine Trendbewertung. Keine Mustererkennung.
+Keine Einstufung von Messwerten. Keine Schwellenwertwarnung. Keine
+Dosierungslogik. Keine Impfplan-Ableitung. Kein Symptom-Checker. Keine
+Entwicklungsbewertung. Keine KI.
+
+Vollständige Liste mit Begründung: [`REGULATORY.md`](REGULATORY.md) Abschnitt 3.
+
+**Prüffrage vor jedem neuen Feature:** Erzeugt die Anwendung eine Aussage, die
+nicht bereits vom Nutzer eingegeben wurde? Wenn ja — nicht bauen.
+
+## Qualitätssicherung
+
+```bash
+cd app
+npm run check:wording   # Wortliste maschinell durchgesetzt, DE und EN
+npm run build           # Typprüfung und Produktions-Build
+npm run lint
+```
+
+Die Wortlisten-Prüfung bricht mit Exit-Code 1 ab, sobald ein verbotener Begriff in
+einem Oberflächen- oder Store-Text auftaucht. Sie gehört in die CI.
+
+## Vor Marktbereitstellung zu klären
+
+1. **Juristische Prüfung der Abgrenzung** durch eine auf MDR spezialisierte
+   Kanzlei, mit Bezug auf MDCG 2019-11 Rev. 1 — blockierend
+2. **Lizenz Kromeyer-Hauschild (2001)** — bis dahin im Code gesperrt und nicht
+   auswählbar
+3. **KiGGS-Nutzungsbedingungen** beim RKI erfragen
+4. **Amtliche LMS-Parameter** für WHO und CDC einsetzen; die aktuell hinterlegten
+   Kurvenwerte sind ungeprüfte Näherungen und in der Oberfläche so gekennzeichnet
+5. **Datenschutz-Folgenabschätzung** nach Art. 35 DSGVO
+
+Details und Verantwortlichkeiten: [`REGULATORY.md`](REGULATORY.md) Abschnitt 7.
 
 ---
 
-*Konzeptdokumentation und Prototyp. Kein Medizinprodukt, keine medizinische Beratung.*
+*Die Anwendung trifft keine medizinischen Aussagen, stellt keine Diagnosen, gibt
+keine Handlungsempfehlungen und bewertet die eingegebenen Daten nicht. Sie ersetzt
+keine ärztliche Untersuchung, Beratung oder Behandlung.*

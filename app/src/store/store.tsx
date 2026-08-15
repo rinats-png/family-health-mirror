@@ -8,27 +8,35 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { SCHEMA_VERSION, clearState, loadState, saveState, saveStateSync } from '../db/persistence';
+import { BUILT_IN_CATEGORIES } from '../data/categories';
+import { DEFAULT_REFERENCE_ID } from '../data/growthReferences';
+import { deriveKey, randomSalt } from '../db/crypto';
+import {
+  SCHEMA_VERSION,
+  clearState,
+  decryptEnvelope,
+  loadEnvelope,
+  saveStateEncrypted,
+  saveStatePlain,
+  saveStatePlainSync,
+  type Envelope,
+} from '../db/persistence';
 import { nowISO } from '../domain/dates';
 import type {
   AppState,
-  CheckupRecord,
+  Category,
   Child,
-  DiaperEntry,
-  FeedingEntry,
-  HealthEntry,
+  Entry,
   ID,
   Measurement,
-  MedPreset,
-  MedicationEvent,
-  MilestoneRecord,
+  PassPhoto,
+  Reminder,
   Settings,
-  SleepEntry,
   SyncMeta,
   VaccinationRecord,
 } from '../domain/types';
 
-export const CHILD_COLORS = ['#65ABC4', '#DDC6B6', '#8FBF9F', '#E0A9A2', '#B49AC7', '#E8C46B'];
+export const CHILD_COLORS = ['#65ABC4', '#DDC6B6', '#8FBF9F', '#B49AC7', '#C7B37E', '#9AA7C7'];
 
 function uid(prefix: string): string {
   const rnd =
@@ -38,74 +46,92 @@ function uid(prefix: string): string {
   return `${prefix}_${Date.now().toString(36)}${rnd}`;
 }
 
-function deviceId(): string {
-  return uid('dev');
+function meta(): SyncMeta {
+  return { createdAt: nowISO(), updatedAt: nowISO() };
+}
+
+function defaultCategories(): Category[] {
+  return BUILT_IN_CATEGORIES.map((c, i) => ({
+    id: `cat_${c.key}`,
+    builtInKey: c.key,
+    icon: c.icon,
+    color: c.color,
+    order: i,
+    ...meta(),
+  }));
+}
+
+function browserLocale(): 'de' | 'en' {
+  if (typeof navigator === 'undefined') return 'de';
+  return navigator.language?.toLowerCase().startsWith('de') ? 'de' : 'en';
 }
 
 export function emptyState(): AppState {
   return {
     schemaVersion: SCHEMA_VERSION,
-    deviceId: deviceId(),
     children: [],
+    categories: defaultCategories(),
     entries: [],
     measurements: [],
-    medPresets: [],
-    medications: [],
-    feedings: [],
-    diapers: [],
-    sleep: [],
+    reminders: [],
     vaccinations: [],
-    checkups: [],
-    milestones: [],
+    passPhotos: [],
     settings: {
+      locale: browserLocale(),
       theme: 'system',
       nightMode: true,
-      chipUsage: {},
-      proUnlocked: false,
+      pro: false,
+      weightUnit: 'kg',
+      lengthUnit: 'cm',
+      temperatureUnit: 'C',
+      growthReferenceId: DEFAULT_REFERENCE_ID,
       onboarded: false,
-      lastTempMethod: 'ear',
+      lockEnabled: false,
     },
   };
 }
 
-/** Ergänzt fehlende Felder, damit ältere gespeicherte Stände weiter laden. */
 function migrate(loaded: AppState): AppState {
   const base = emptyState();
   return {
     ...base,
     ...loaded,
     schemaVersion: SCHEMA_VERSION,
-    deviceId: loaded.deviceId || base.deviceId,
+    categories: loaded.categories?.length ? loaded.categories : base.categories,
     settings: { ...base.settings, ...loaded.settings },
   };
 }
 
 type Collection =
-  | 'children'
   | 'entries'
   | 'measurements'
-  | 'medPresets'
-  | 'medications'
-  | 'feedings'
-  | 'diapers'
-  | 'sleep'
+  | 'reminders'
   | 'vaccinations'
-  | 'checkups'
-  | 'milestones';
+  | 'passPhotos'
+  | 'categories';
+
+export type LockState = 'open' | 'locked' | 'unsupported';
 
 interface StoreValue {
   state: AppState;
   ready: boolean;
+  lockState: LockState;
   activeChild?: Child;
+
+  unlock: (password: string) => Promise<boolean>;
+  enableLock: (password: string) => Promise<void>;
+  disableLock: () => Promise<void>;
+
   setActiveChild: (id: ID) => void;
-  addChild: (input: Omit<Child, keyof SyncMeta | 'id' | 'color'>) => Child;
+  addChild: (input: Pick<Child, 'name' | 'birthDate'> & Partial<Child>) => Child;
   updateChild: (id: ID, patch: Partial<Child>) => void;
   removeChild: (id: ID) => void;
+
   add: <T extends { id: ID }>(collection: Collection, record: Omit<T, keyof SyncMeta | 'id'>) => T;
   update: (collection: Collection, id: ID, patch: Record<string, unknown>) => void;
   remove: (collection: Collection, id: ID) => void;
+
   updateSettings: (patch: Partial<Settings>) => void;
-  noteChipUse: (code: string) => void;
   replaceState: (next: AppState) => void;
   resetAll: () => Promise<void>;
 }
@@ -115,47 +141,63 @@ const StoreContext = createContext<StoreValue | null>(null);
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppState>(emptyState);
   const [ready, setReady] = useState(false);
+  const [lockState, setLockState] = useState<LockState>('open');
+  const [pendingEnvelope, setPendingEnvelope] = useState<Envelope | null>(null);
+
+  const cryptoKey = useRef<CryptoKey | null>(null);
+  const salt = useRef<string | null>(null);
   const saveTimer = useRef<number | undefined>(undefined);
-  /** Jüngster State für den Sofort-Flush beim Verlassen der Seite. */
   const latest = useRef<AppState>(state);
 
   useEffect(() => {
     let cancelled = false;
-    loadState().then((loaded) => {
-      if (cancelled) return;
-      if (loaded) setState(migrate(loaded));
-      setReady(true);
-    });
+    loadEnvelope()
+      .then((envelope) => {
+        if (cancelled) return;
+        if (!envelope) {
+          setReady(true);
+          return;
+        }
+        if (envelope.kind === 'plain') {
+          setState(migrate(envelope.state));
+          setReady(true);
+          return;
+        }
+        // Verschlüsselt: erst nach Eingabe des Passworts nutzbar.
+        setPendingEnvelope(envelope);
+        salt.current = envelope.salt;
+        setLockState('locked');
+        setReady(true);
+      })
+      .catch(() => setReady(true));
     return () => {
       cancelled = true;
     };
   }, []);
 
-  // Debounced schreiben: schnelle Eingaben sollen die UI nicht blockieren.
+  const persist = useCallback(async (next: AppState) => {
+    if (cryptoKey.current && salt.current) {
+      await saveStateEncrypted(next, cryptoKey.current, salt.current);
+    } else {
+      await saveStatePlain(next);
+    }
+  }, []);
+
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || lockState === 'locked') return;
     latest.current = state;
     window.clearTimeout(saveTimer.current);
-    saveTimer.current = window.setTimeout(() => void saveState(state), 250);
+    saveTimer.current = window.setTimeout(() => void persist(state), 250);
     return () => window.clearTimeout(saveTimer.current);
-  }, [state, ready]);
+  }, [state, ready, lockState, persist]);
 
-  /*
-   * Sofort-Flush, wenn die Seite in den Hintergrund geht oder geschlossen wird.
-   *
-   * Ohne das geht eine Änderung verloren, die weniger als die Debounce-Zeit vor
-   * dem Schließen passiert ist — genau der Fall „Eintrag getippt, Handy sofort
-   * weggelegt". Bei einer App mit dem Anspruch, keine Daten zu verlieren, ist
-   * das nicht hinnehmbar.
-   */
+  // Sofort sichern, wenn die Seite in den Hintergrund geht oder geschlossen wird.
   useEffect(() => {
-    if (!ready) return;
+    if (!ready || lockState === 'locked') return;
     const flush = () => {
       window.clearTimeout(saveTimer.current);
-      // Synchron: eine asynchrone IndexedDB-Transaktion würde hier nicht mehr
-      // fertig werden. Der reguläre Debounce-Pfad schreibt beides.
-      saveStateSync(latest.current);
-      void saveState(latest.current);
+      if (!cryptoKey.current) saveStatePlainSync(latest.current);
+      void persist(latest.current);
     };
     const onVisibility = () => {
       if (document.visibilityState === 'hidden') flush();
@@ -166,46 +208,71 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       window.removeEventListener('pagehide', flush);
       document.removeEventListener('visibilitychange', onVisibility);
     };
-  }, [ready]);
+  }, [ready, lockState, persist]);
 
-  const meta = useCallback(
-    (): SyncMeta => ({
-      createdAt: nowISO(),
-      updatedAt: nowISO(),
-      deviceId: state.deviceId,
-    }),
-    [state.deviceId],
-  );
-
-  const addChild = useCallback<StoreValue['addChild']>(
-    (input) => {
-      const child: Child = {
-        ...input,
-        id: uid('child'),
-        color: CHILD_COLORS[Math.floor(Math.random() * CHILD_COLORS.length)],
-        createdAt: nowISO(),
-        updatedAt: nowISO(),
-        deviceId: state.deviceId,
-      };
-      setState((s) => ({
-        ...s,
-        children: [...s.children, child],
-        settings: { ...s.settings, activeChildId: s.settings.activeChildId ?? child.id },
-      }));
-      return child;
+  const unlock = useCallback<StoreValue['unlock']>(
+    async (password) => {
+      if (!pendingEnvelope || pendingEnvelope.kind !== 'encrypted') return false;
+      try {
+        const key = await deriveKey(password, pendingEnvelope.salt);
+        const decrypted = await decryptEnvelope(pendingEnvelope, key);
+        cryptoKey.current = key;
+        salt.current = pendingEnvelope.salt;
+        setState(migrate(decrypted));
+        setPendingEnvelope(null);
+        setLockState('open');
+        return true;
+      } catch {
+        return false;
+      }
     },
-    [state.deviceId],
+    [pendingEnvelope],
   );
+
+  const enableLock = useCallback<StoreValue['enableLock']>(
+    async (password) => {
+      const newSalt = randomSalt();
+      const key = await deriveKey(password, newSalt);
+      cryptoKey.current = key;
+      salt.current = newSalt;
+      const next = { ...latest.current, settings: { ...latest.current.settings, lockEnabled: true } };
+      setState(next);
+      await saveStateEncrypted(next, key, newSalt);
+    },
+    [],
+  );
+
+  const disableLock = useCallback<StoreValue['disableLock']>(async () => {
+    cryptoKey.current = null;
+    salt.current = null;
+    const next = { ...latest.current, settings: { ...latest.current.settings, lockEnabled: false } };
+    setState(next);
+    await saveStatePlain(next);
+  }, []);
+
+  const addChild = useCallback<StoreValue['addChild']>((input) => {
+    const child: Child = {
+      color: CHILD_COLORS[Math.floor(Math.random() * CHILD_COLORS.length)],
+      ...input,
+      id: uid('child'),
+      ...meta(),
+    };
+    setState((s) => ({
+      ...s,
+      children: [...s.children, child],
+      settings: { ...s.settings, activeChildId: s.settings.activeChildId ?? child.id },
+    }));
+    return child;
+  }, []);
 
   const updateChild = useCallback<StoreValue['updateChild']>((id, patch) => {
     setState((s) => ({
       ...s,
-      children: s.children.map((c) =>
-        c.id === id ? { ...c, ...patch, updatedAt: nowISO() } : c,
-      ),
+      children: s.children.map((c) => (c.id === id ? { ...c, ...patch, updatedAt: nowISO() } : c)),
     }));
   }, []);
 
+  /** Vollständige Entfernung inklusive aller Anhänge (Abschnitt 8). */
   const removeChild = useCallback<StoreValue['removeChild']>((id) => {
     setState((s) => {
       const remaining = s.children.filter((c) => c.id !== id);
@@ -213,15 +280,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         ...s,
         children: remaining,
         entries: s.entries.filter((e) => e.childId !== id),
-        measurements: s.measurements.filter((e) => e.childId !== id),
-        medPresets: s.medPresets.filter((e) => e.childId !== id),
-        medications: s.medications.filter((e) => e.childId !== id),
-        feedings: s.feedings.filter((e) => e.childId !== id),
-        diapers: s.diapers.filter((e) => e.childId !== id),
-        sleep: s.sleep.filter((e) => e.childId !== id),
-        vaccinations: s.vaccinations.filter((e) => e.childId !== id),
-        checkups: s.checkups.filter((e) => e.childId !== id),
-        milestones: s.milestones.filter((e) => e.childId !== id),
+        measurements: s.measurements.filter((m) => m.childId !== id),
+        reminders: s.reminders.filter((r) => r.childId !== id),
+        vaccinations: s.vaccinations.filter((v) => v.childId !== id),
+        passPhotos: s.passPhotos.filter((p) => p.childId !== id),
         settings: {
           ...s.settings,
           activeChildId:
@@ -231,21 +293,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
-  const add = useCallback<StoreValue['add']>(
-    (collection, record) => {
-      const created = {
-        ...(record as object),
-        id: uid(collection.slice(0, 3)),
-        ...meta(),
-      } as never;
-      setState((s) => ({
-        ...s,
-        [collection]: [...(s[collection] as unknown[]), created],
-      }));
-      return created;
-    },
-    [meta],
-  );
+  const add = useCallback<StoreValue['add']>((collection, record) => {
+    const created = { ...(record as object), id: uid(collection.slice(0, 3)), ...meta() } as never;
+    setState((s) => ({ ...s, [collection]: [...(s[collection] as unknown[]), created] }));
+    return created;
+  }, []);
 
   const update = useCallback<StoreValue['update']>((collection, id, patch) => {
     setState((s) => ({
@@ -256,13 +308,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  /** Tombstone statt Hard-Delete (PRD §5.3). */
   const remove = useCallback<StoreValue['remove']>((collection, id) => {
     setState((s) => ({
       ...s,
-      [collection]: (s[collection] as { id: ID }[]).map((r) =>
-        r.id === id ? { ...r, deleted: true, updatedAt: nowISO() } : r,
-      ),
+      [collection]: (s[collection] as { id: ID }[]).filter((r) => r.id !== id),
     }));
   }, []);
 
@@ -275,49 +324,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [updateSettings],
   );
 
-  const noteChipUse = useCallback((code: string) => {
-    setState((s) => ({
-      ...s,
-      settings: {
-        ...s.settings,
-        chipUsage: { ...s.settings.chipUsage, [code]: (s.settings.chipUsage[code] ?? 0) + 1 },
-      },
-    }));
-  }, []);
-
   const replaceState = useCallback((next: AppState) => setState(migrate(next)), []);
 
   const resetAll = useCallback(async () => {
     await clearState();
+    cryptoKey.current = null;
+    salt.current = null;
+    setLockState('open');
     setState(emptyState());
   }, []);
 
   const activeChild = useMemo(
-    () =>
-      state.children.find((c) => c.id === state.settings.activeChildId) ?? state.children[0],
+    () => state.children.find((c) => c.id === state.settings.activeChildId) ?? state.children[0],
     [state.children, state.settings.activeChildId],
   );
 
   const value = useMemo<StoreValue>(
     () => ({
-      state,
-      ready,
-      activeChild,
-      setActiveChild,
-      addChild,
-      updateChild,
-      removeChild,
-      add,
-      update,
-      remove,
-      updateSettings,
-      noteChipUse,
-      replaceState,
-      resetAll,
+      state, ready, lockState, activeChild,
+      unlock, enableLock, disableLock,
+      setActiveChild, addChild, updateChild, removeChild,
+      add, update, remove, updateSettings, replaceState, resetAll,
     }),
     [
-      state, ready, activeChild, setActiveChild, addChild, updateChild, removeChild,
-      add, update, remove, updateSettings, noteChipUse, replaceState, resetAll,
+      state, ready, lockState, activeChild, unlock, enableLock, disableLock,
+      setActiveChild, addChild, updateChild, removeChild, add, update, remove,
+      updateSettings, replaceState, resetAll,
     ],
   );
 
@@ -330,33 +362,34 @@ export function useStore(): StoreValue {
   return ctx;
 }
 
-/** Typisierte Hilfsfunktionen für die häufigsten Schreibzugriffe. */
 export function useActions() {
   const { add, update, remove } = useStore();
   return useMemo(
     () => ({
-      addEntry: (r: Omit<HealthEntry, keyof SyncMeta | 'id'>) => add<HealthEntry>('entries', r),
-      updateEntry: (id: ID, patch: Partial<HealthEntry>) => update('entries', id, patch),
+      addEntry: (r: Omit<Entry, keyof SyncMeta | 'id'>) => add<Entry>('entries', r),
+      updateEntry: (id: ID, patch: Partial<Entry>) => update('entries', id, patch),
       removeEntry: (id: ID) => remove('entries', id),
+
       addMeasurement: (r: Omit<Measurement, keyof SyncMeta | 'id'>) =>
         add<Measurement>('measurements', r),
-      addMedPreset: (r: Omit<MedPreset, keyof SyncMeta | 'id'>) => add<MedPreset>('medPresets', r),
-      removeMedPreset: (id: ID) => remove('medPresets', id),
-      addMedication: (r: Omit<MedicationEvent, keyof SyncMeta | 'id'>) =>
-        add<MedicationEvent>('medications', r),
-      addFeeding: (r: Omit<FeedingEntry, keyof SyncMeta | 'id'>) =>
-        add<FeedingEntry>('feedings', r),
-      addDiaper: (r: Omit<DiaperEntry, keyof SyncMeta | 'id'>) => add<DiaperEntry>('diapers', r),
-      addSleep: (r: Omit<SleepEntry, keyof SyncMeta | 'id'>) => add<SleepEntry>('sleep', r),
+      removeMeasurement: (id: ID) => remove('measurements', id),
+
+      addReminder: (r: Omit<Reminder, keyof SyncMeta | 'id'>) => add<Reminder>('reminders', r),
+      updateReminder: (id: ID, patch: Partial<Reminder>) => update('reminders', id, patch),
+      removeReminder: (id: ID) => remove('reminders', id),
+
       addVaccination: (r: Omit<VaccinationRecord, keyof SyncMeta | 'id'>) =>
         add<VaccinationRecord>('vaccinations', r),
+      updateVaccination: (id: ID, patch: Partial<VaccinationRecord>) =>
+        update('vaccinations', id, patch),
       removeVaccination: (id: ID) => remove('vaccinations', id),
-      addCheckup: (r: Omit<CheckupRecord, keyof SyncMeta | 'id'>) =>
-        add<CheckupRecord>('checkups', r),
-      removeCheckup: (id: ID) => remove('checkups', id),
-      addMilestone: (r: Omit<MilestoneRecord, keyof SyncMeta | 'id'>) =>
-        add<MilestoneRecord>('milestones', r),
-      removeMilestone: (id: ID) => remove('milestones', id),
+
+      addPassPhoto: (r: Omit<PassPhoto, keyof SyncMeta | 'id'>) => add<PassPhoto>('passPhotos', r),
+      removePassPhoto: (id: ID) => remove('passPhotos', id),
+
+      addCategory: (r: Omit<Category, keyof SyncMeta | 'id'>) => add<Category>('categories', r),
+      updateCategory: (id: ID, patch: Partial<Category>) => update('categories', id, patch),
+      removeCategory: (id: ID) => remove('categories', id),
     }),
     [add, update, remove],
   );

@@ -1,5 +1,14 @@
 # Marktanalyse — Apps für Kindergesundheit
 
+> ## ⚠️ Hinweis zum Scope
+>
+> Diese Analyse entstand vor der Einengung auf eine strikt dokumentierende
+> Anwendung. Die Marktbeobachtungen gelten unverändert; die daraus abgeleiteten
+> Funktionsempfehlungen in Abschnitt 3, 4 und 6 gelten nur insoweit, als sie
+> nicht gegen die Ausschlussliste in **[`../REGULATORY.md`](../REGULATORY.md)**
+> verstoßen. Betroffen sind insbesondere die Empfehlungen zum Vorjahresvergleich,
+> zum Fiebermodul und zu Impf-Fälligkeiten.
+
 **Stand:** August 2026 · **Markt:** Deutschland, mit Blick auf den internationalen Wettbewerb
 **Methodik:** Web-Recherche zu Angeboten, Funktionsumfang, Preisen und öffentlich geäußerter Nutzerkritik. Die Aussagen zu einzelnen Apps geben den Rechercheergebnis-Stand wieder und sind vor einer Investitionsentscheidung durch eigene Installation und Prüfung zu verifizieren.
 

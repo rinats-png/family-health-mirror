@@ -1,26 +1,35 @@
 import { useState } from 'react';
-import { CHECKUPS_VERSION } from '../data/checkups';
-import { GROWTH_DATA_VERSION } from '../data/growth';
-import { VACCINE_SCHEDULE } from '../data/stiko';
-import { ageGroupOf } from '../domain/ageGroups';
+import { CATEGORY_PALETTE } from '../data/categories';
+import { useI18n } from '../i18n';
+import { categoryLabel } from '../domain/categories';
 import { formatAge, formatDateShort, todayISO } from '../domain/dates';
-import { exportFullJson } from '../domain/export';
-import { useStore } from '../store/store';
-import type { AppState, Child } from '../domain/types';
+import { exportCsv, exportJson } from '../domain/export';
+import { useActions, useStore } from '../store/store';
+import type { AppState, Child, Locale, Sex } from '../domain/types';
 import { Sheet } from '../ui/Sheet';
+import { ExportSheet } from './ExportSheet';
 
-/** Free-Grenze aus dem PRD §6.4: ein Kind kostenlos, weitere in Pro. */
 const FREE_CHILD_LIMIT = 1;
 
 export function Profile({ child }: { child: Child }) {
+  const { t, locale } = useI18n();
   const {
-    state, addChild, updateChild, removeChild, setActiveChild, updateSettings, replaceState, resetAll,
+    state, addChild, updateChild, removeChild, setActiveChild,
+    updateSettings, replaceState, resetAll, enableLock, disableLock,
   } = useStore();
-  const [adding, setAdding] = useState(false);
-  const [form, setForm] = useState({ name: '', birthDate: todayISO(), sex: '', preterm: false, weeks: 40 });
-  const [allergyInput, setAllergyInput] = useState('');
+  const { addCategory, updateCategory, removeCategory } = useActions();
 
-  const canAddChild = state.settings.proUnlocked || state.children.length < FREE_CHILD_LIMIT;
+  const [addingChild, setAddingChild] = useState(false);
+  const [childForm, setChildForm] = useState({ name: '', birthDate: todayISO() });
+  const [exporting, setExporting] = useState(false);
+  const [tileDraft, setTileDraft] = useState('');
+  const [lockOpen, setLockOpen] = useState(false);
+  const [pw, setPw] = useState('');
+  const [pw2, setPw2] = useState('');
+  const [lockError, setLockError] = useState('');
+
+  const { pro } = state.settings;
+  const canAddChild = pro || state.children.length < FREE_CHILD_LIMIT;
 
   const importJson = (file: File) => {
     const reader = new FileReader();
@@ -28,52 +37,68 @@ export function Profile({ child }: { child: Child }) {
       try {
         const parsed = JSON.parse(String(reader.result));
         const next: AppState = parsed.state ?? parsed;
-        if (!next || !Array.isArray(next.children)) throw new Error('Unerwartetes Format');
+        if (!next || !Array.isArray(next.children)) throw new Error('format');
         replaceState(next);
-        alert('Daten importiert.');
       } catch {
-        alert('Die Datei konnte nicht gelesen werden. Erwartet wird ein JSON-Export dieser App.');
+        alert('Import failed / Import fehlgeschlagen');
       }
     };
     reader.readAsText(file);
   };
 
+  const submitLock = async () => {
+    if (pw.length < 8) {
+      setLockError(t('lockTooShort'));
+      return;
+    }
+    if (pw !== pw2) {
+      setLockError(t('lockMismatch'));
+      return;
+    }
+    await enableLock(pw);
+    setPw('');
+    setPw2('');
+    setLockError('');
+    setLockOpen(false);
+  };
+
   return (
     <>
       <div className="screen-head">
-        <h1 className="screen-title">Profil</h1>
-        <div className="screen-sub">Kinder, Daten und Einstellungen</div>
+        <h1 className="screen-title">{t('profileTitle')}</h1>
       </div>
 
       <section className="section">
-        <div className="section__title">Kinder</div>
+        <div className="section__title">{t('children')}</div>
         <div className="list">
           {state.children.map((c) => (
             <div key={c.id} className="list-item">
               <span className="avatar" style={{ background: c.color }} aria-hidden>
-                {c.name.slice(0, 1).toUpperCase()}
+                {c.photo ? (
+                  <img src={c.photo} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                ) : (
+                  c.name.slice(0, 1).toUpperCase()
+                )}
               </span>
               <div className="list-item__main">
                 <div className="list-item__title">
-                  {c.name} {c.id === child.id && <span className="pro-badge">aktiv</span>}
+                  {c.name} {c.id === child.id && <span className="pro-badge">{t('childActive')}</span>}
                 </div>
                 <div className="list-item__meta">
-                  {formatDateShort(c.birthDate)} · {formatAge(c.birthDate)} · {ageGroupOf(c).label}
+                  {formatDateShort(c.birthDate, locale)} · {formatAge(c.birthDate, locale)}
                 </div>
               </div>
               {c.id !== child.id && (
                 <button type="button" className="btn btn--sm btn--ghost" onClick={() => setActiveChild(c.id)}>
-                  Wechseln
+                  {t('childSwitch')}
                 </button>
               )}
               <button
                 type="button"
                 className="btn btn--sm btn--ghost"
-                aria-label={`${c.name} löschen`}
+                aria-label={t('delete')}
                 onClick={() => {
-                  if (confirm(`${c.name} und alle zugehörigen Daten unwiderruflich löschen?`)) {
-                    removeChild(c.id);
-                  }
+                  if (confirm(t('childDeleteConfirm'))) removeChild(c.id);
                 }}
               >
                 ✕
@@ -81,40 +106,41 @@ export function Profile({ child }: { child: Child }) {
             </div>
           ))}
         </div>
-
         {canAddChild ? (
           <button
             type="button"
             className="btn btn--ghost btn--block"
             style={{ marginTop: 'var(--space-3)' }}
-            onClick={() => setAdding(true)}
+            onClick={() => {
+              setChildForm({ name: '', birthDate: todayISO() });
+              setAddingChild(true);
+            }}
           >
-            + Weiteres Kind
+            + {t('childAdd')}
           </button>
         ) : (
           <div className="note note--info" style={{ marginTop: 'var(--space-3)' }}>
-            Mehrere Kinder sind ein Pro-Feature. In diesem Prototyp kannst du Pro unten
-            freischalten — ohne Zahlung, nur zum Ausprobieren.
+            {t('proNeededChild')}
           </div>
         )}
       </section>
 
       <section className="section">
-        <div className="section__title">{child.name} bearbeiten</div>
+        <div className="section__title">{child.name}</div>
         <div className="tile tile--wide">
           <div className="field">
-            <label className="field__label" htmlFor="cname">Name</label>
+            <label className="field__label" htmlFor="p-name">{t('obNameLabel')}</label>
             <input
-              id="cname"
+              id="p-name"
               className="input"
               value={child.name}
               onChange={(e) => updateChild(child.id, { name: e.target.value })}
             />
           </div>
           <div className="field">
-            <label className="field__label" htmlFor="cbirth">Geburtsdatum</label>
+            <label className="field__label" htmlFor="p-birth">{t('obBirthLabel')}</label>
             <input
-              id="cbirth"
+              id="p-birth"
               className="input"
               type="date"
               value={child.birthDate}
@@ -123,105 +149,177 @@ export function Profile({ child }: { child: Child }) {
             />
           </div>
           <div className="field">
-            <span className="field__label">Geschlecht (optional, nur für Referenzkurven)</span>
+            <span className="field__label">{t('childSex')}</span>
             <div className="seg">
-              {[
-                { v: undefined, l: 'ohne Angabe' },
-                { v: 'f' as const, l: 'weiblich' },
-                { v: 'm' as const, l: 'männlich' },
-                { v: 'd' as const, l: 'divers' },
-              ].map((o) => (
+              {(
+                [
+                  [undefined, t('sexUnset')],
+                  ['f', t('sexFemale')],
+                  ['m', t('sexMale')],
+                  ['x', t('sexOther')],
+                ] as [Sex | undefined, string][]
+              ).map(([value, label]) => (
                 <button
-                  key={o.l}
+                  key={label}
                   type="button"
                   className="seg__item"
-                  aria-pressed={child.sex === o.v}
-                  onClick={() => updateChild(child.id, { sex: o.v })}
+                  aria-pressed={child.sex === value}
+                  onClick={() => updateChild(child.id, { sex: value })}
                 >
-                  {o.l}
+                  {label}
                 </button>
               ))}
             </div>
+            <p className="small muted" style={{ marginTop: 6 }}>{t('childSexHint')}</p>
           </div>
           <div className="field">
-            <label className="row" style={{ gap: 'var(--space-2)' }}>
-              <input
-                type="checkbox"
-                checked={child.isPreterm}
-                onChange={(e) => updateChild(child.id, { isPreterm: e.target.checked })}
-                style={{ width: 22, height: 22 }}
-              />
-              <span>Frühgeburt — korrigiertes Alter verwenden</span>
-            </label>
-            {child.isPreterm && (
-              <input
-                className="input tabular"
-                style={{ marginTop: 8 }}
-                type="number"
-                min={22}
-                max={40}
-                value={child.gestationalWeeks ?? 36}
-                onChange={(e) => updateChild(child.id, { gestationalWeeks: Number(e.target.value) })}
-                aria-label="Schwangerschaftswoche bei Geburt"
-              />
-            )}
+            <label className="field__label" htmlFor="p-photo">{t('childPhoto')}</label>
+            <input
+              id="p-photo"
+              className="input"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => updateChild(child.id, { photo: String(reader.result) });
+                reader.readAsDataURL(file);
+              }}
+            />
           </div>
-          <div className="field">
-            <span className="field__label">Allergien und Unverträglichkeiten</span>
-            <div className="row row--wrap" style={{ marginBottom: 8 }}>
-              {child.allergies.map((a) => (
-                <button
-                  key={a}
-                  type="button"
-                  className="seg__item"
-                  onClick={() =>
-                    updateChild(child.id, { allergies: child.allergies.filter((x) => x !== a) })
-                  }
-                >
-                  {a} ✕
-                </button>
-              ))}
-              {child.allergies.length === 0 && <span className="small muted">keine erfasst</span>}
-            </div>
-            <div className="row">
-              <input
-                className="input"
-                placeholder="z. B. Kuhmilcheiweiß"
-                value={allergyInput}
-                onChange={(e) => setAllergyInput(e.target.value)}
-              />
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section__title">{t('tilesTitle')}</div>
+        <div className="list">
+          {[...state.categories].sort((a, b) => a.order - b.order).map((c) => (
+            <div key={c.id} className="list-item">
+              <span className="avatar" style={{ background: c.color }} aria-hidden>{c.icon}</span>
+              <div className="list-item__main">
+                <input
+                  className="input"
+                  value={categoryLabel(c, locale)}
+                  disabled={!pro}
+                  onChange={(e) => updateCategory(c.id, { customLabel: e.target.value })}
+                  aria-label={t('tileLabel')}
+                />
+              </div>
               <button
                 type="button"
-                className="btn btn--sm"
-                disabled={!allergyInput.trim()}
-                onClick={() => {
-                  updateChild(child.id, { allergies: [...child.allergies, allergyInput.trim()] });
-                  setAllergyInput('');
-                }}
+                className="btn btn--sm btn--ghost"
+                disabled={!pro}
+                onClick={() => updateCategory(c.id, { hidden: !c.hidden })}
               >
-                +
+                {c.hidden ? t('tileShow') : t('tileHide')}
               </button>
+              {!c.builtInKey && (
+                <button
+                  type="button"
+                  className="btn btn--sm btn--ghost"
+                  aria-label={t('delete')}
+                  onClick={() => removeCategory(c.id)}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        {pro ? (
+          <div className="row" style={{ marginTop: 'var(--space-3)' }}>
+            <input
+              className="input"
+              placeholder={t('tileNew')}
+              value={tileDraft}
+              onChange={(e) => setTileDraft(e.target.value)}
+            />
+            <button
+              type="button"
+              className="btn btn--sm btn--primary"
+              disabled={!tileDraft.trim()}
+              onClick={() => {
+                addCategory({
+                  customLabel: tileDraft.trim(),
+                  icon: '📝',
+                  color: CATEGORY_PALETTE[state.categories.length % CATEGORY_PALETTE.length],
+                  order: state.categories.length,
+                });
+                setTileDraft('');
+              }}
+            >
+              {t('add')}
+            </button>
+          </div>
+        ) : (
+          <div className="note note--info" style={{ marginTop: 'var(--space-3)' }}>
+            {t('proNeededTiles')}
+          </div>
+        )}
+        <p className="small muted" style={{ marginTop: 'var(--space-2)' }}>{t('tilesHint')}</p>
+      </section>
+
+      <section className="section">
+        <div className="section__title">{t('unitsTitle')}</div>
+        <div className="tile tile--wide">
+          <div className="field">
+            <div className="seg">
+              {(['kg', 'lb'] as const).map((u) => (
+                <button key={u} type="button" className="seg__item"
+                  aria-pressed={state.settings.weightUnit === u}
+                  onClick={() => updateSettings({ weightUnit: u })}>{u}</button>
+              ))}
+            </div>
+          </div>
+          <div className="field">
+            <div className="seg">
+              {(['cm', 'in'] as const).map((u) => (
+                <button key={u} type="button" className="seg__item"
+                  aria-pressed={state.settings.lengthUnit === u}
+                  onClick={() => updateSettings({ lengthUnit: u })}>{u}</button>
+              ))}
+            </div>
+          </div>
+          <div className="field" style={{ marginBottom: 0 }}>
+            <div className="seg">
+              {(['C', 'F'] as const).map((u) => (
+                <button key={u} type="button" className="seg__item"
+                  aria-pressed={state.settings.temperatureUnit === u}
+                  onClick={() => updateSettings({ temperatureUnit: u })}>°{u}</button>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
       <section className="section">
-        <div className="section__title">Darstellung</div>
+        <div className="section__title">{t('appearance')}</div>
         <div className="tile tile--wide">
           <div className="field">
-            <span className="field__label">Thema</span>
+            <span className="field__label">{t('language')}</span>
             <div className="seg">
-              {(['system', 'light', 'dark'] as const).map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  className="seg__item"
-                  aria-pressed={state.settings.theme === t}
-                  onClick={() => updateSettings({ theme: t })}
-                >
-                  {t === 'system' ? 'System' : t === 'light' ? 'Hell' : 'Dunkel'}
+              {(['de', 'en'] as Locale[]).map((l) => (
+                <button key={l} type="button" className="seg__item"
+                  aria-pressed={state.settings.locale === l}
+                  onClick={() => updateSettings({ locale: l })}>
+                  {l === 'de' ? 'Deutsch' : 'English'}
                 </button>
+              ))}
+            </div>
+          </div>
+          <div className="field">
+            <div className="seg">
+              {(
+                [
+                  ['system', t('themeSystem')],
+                  ['light', t('themeLight')],
+                  ['dark', t('themeDark')],
+                ] as const
+              ).map(([value, label]) => (
+                <button key={value} type="button" className="seg__item"
+                  aria-pressed={state.settings.theme === value}
+                  onClick={() => updateSettings({ theme: value })}>{label}</button>
               ))}
             </div>
           </div>
@@ -232,37 +330,76 @@ export function Profile({ child }: { child: Child }) {
               onChange={(e) => updateSettings({ nightMode: e.target.checked })}
               style={{ width: 22, height: 22 }}
             />
-            <span>Nachtmodus ab 21 Uhr (gedämpft, ohne Animationen)</span>
+            <span>{t('nightModeLabel')}</span>
           </label>
         </div>
       </section>
 
       <section className="section">
-        <div className="section__title">Pro</div>
+        <div className="section__title">{t('security')}</div>
         <div className="tile tile--wide">
-          <p className="tile__meta" style={{ marginBottom: 'var(--space-3)' }}>
-            Free: ein Kind, vollständige tägliche Erfassung, Datenexport. Pro: mehrere Kinder,
-            Impfplan-Erinnerungen, Auswertungen, Arzt-Export, Perzentilen. Die Erfassung selbst
-            ist und bleibt kostenlos.
-          </p>
+          <div className="tile__label">{t('lockTitle')}</div>
+          <p className="tile__meta" style={{ marginBottom: 'var(--space-3)' }}>{t('lockHint')}</p>
+          {state.settings.lockEnabled ? (
+            <button type="button" className="btn btn--block" onClick={() => void disableLock()}>
+              {t('lockDisable')}
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="btn btn--primary btn--block"
+              onClick={() => {
+                setPw('');
+                setPw2('');
+                setLockError('');
+                setLockOpen(true);
+              }}
+            >
+              {t('lockEnable')}
+            </button>
+          )}
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section__title">{t('proTitle')}</div>
+        <div className="tile tile--wide">
+          <p className="tile__meta" style={{ marginBottom: 'var(--space-3)' }}>{t('proBody')}</p>
           <button
             type="button"
-            className={state.settings.proUnlocked ? 'btn btn--block' : 'btn btn--primary btn--block'}
-            onClick={() => updateSettings({ proUnlocked: !state.settings.proUnlocked })}
+            className={pro ? 'btn btn--block' : 'btn btn--primary btn--block'}
+            onClick={() => updateSettings({ pro: !pro })}
           >
-            {state.settings.proUnlocked ? 'Pro deaktivieren (Test)' : 'Pro freischalten (Test, kostenlos)'}
+            {pro ? t('proDisable') : t('proEnable')}
           </button>
         </div>
       </section>
 
       <section className="section">
-        <div className="section__title">Daten</div>
+        <div className="section__title">{t('dataTitle')}</div>
         <div className="stack">
-          <button type="button" className="btn btn--block" onClick={() => exportFullJson(state)}>
-            Alle Daten exportieren (JSON)
+          <button type="button" className="btn btn--primary btn--block" onClick={() => setExporting(true)}>
+            {t('exportPdf')}
           </button>
+          <button
+            type="button"
+            className="btn btn--block"
+            disabled={!pro}
+            onClick={() => exportJson(state)}
+          >
+            {t('exportJson')}
+          </button>
+          <button
+            type="button"
+            className="btn btn--block"
+            disabled={!pro}
+            onClick={() => exportCsv(state, child)}
+          >
+            {t('exportCsv')}
+          </button>
+          {!pro && <p className="small muted">{t('proNeededExport')}</p>}
           <label className="btn btn--block" style={{ cursor: 'pointer' }}>
-            Daten importieren
+            {t('importJson')}
             <input
               type="file"
               accept="application/json"
@@ -277,69 +414,93 @@ export function Profile({ child }: { child: Child }) {
             type="button"
             className="btn btn--danger btn--block"
             onClick={() => {
-              if (confirm('Wirklich alle Daten dieser App unwiderruflich löschen?')) void resetAll();
+              if (confirm(t('deleteAllConfirm'))) void resetAll();
             }}
           >
-            Alle Daten löschen
+            {t('deleteAll')}
           </button>
-          <p className="small muted">
-            Alle Daten liegen ausschließlich auf diesem Gerät. Es gibt kein Konto, keine
-            Registrierung und keine Übertragung an einen Server. Löschen und Exportieren
-            funktionieren ohne Rückfrage bei einem Support.
-          </p>
+          <p className="small muted">{t('dataHint')}</p>
         </div>
       </section>
 
-      <p className="disclaimer">
-        Prototyp. Datensätze: Impfplan {VACCINE_SCHEDULE.version}, Vorsorge {CHECKUPS_VERSION},
-        Wachstum {GROWTH_DATA_VERSION} — sämtlich ungeprüfte Platzhalter. Diese App ist kein
-        Medizinprodukt, stellt keine Diagnosen und gibt keine Behandlungs- oder
-        Dosierungsempfehlungen.
-      </p>
+      <p className="disclaimer">{t('purposeShort')}</p>
 
-      {adding && (
-        <Sheet open onClose={() => setAdding(false)} title="Kind anlegen">
+      {addingChild && (
+        <Sheet open onClose={() => setAddingChild(false)} title={t('childAdd')}>
           <div className="field">
-            <label className="field__label" htmlFor="nname">Name oder Spitzname</label>
+            <label className="field__label" htmlFor="nc-name">{t('obNameLabel')}</label>
             <input
-              id="nname"
+              id="nc-name"
               className="input"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Ein Spitzname genügt"
+              autoFocus
+              value={childForm.name}
+              placeholder={t('obNamePlaceholder')}
+              onChange={(e) => setChildForm({ ...childForm, name: e.target.value })}
             />
           </div>
           <div className="field">
-            <label className="field__label" htmlFor="nbirth">Geburtsdatum</label>
+            <label className="field__label" htmlFor="nc-birth">{t('obBirthLabel')}</label>
             <input
-              id="nbirth"
+              id="nc-birth"
               className="input"
               type="date"
-              value={form.birthDate}
+              value={childForm.birthDate}
               max={todayISO()}
-              onChange={(e) => setForm({ ...form, birthDate: e.target.value })}
+              onChange={(e) => setChildForm({ ...childForm, birthDate: e.target.value })}
             />
           </div>
           <button
             type="button"
             className="btn btn--primary btn--block"
-            disabled={!form.name.trim()}
+            disabled={!childForm.name.trim()}
             onClick={() => {
               const created = addChild({
-                name: form.name.trim(),
-                birthDate: form.birthDate,
-                isPreterm: false,
-                allergies: [],
+                name: childForm.name.trim(),
+                birthDate: childForm.birthDate,
               });
               setActiveChild(created.id);
-              setForm({ name: '', birthDate: todayISO(), sex: '', preterm: false, weeks: 40 });
-              setAdding(false);
+              setAddingChild(false);
             }}
           >
-            Anlegen
+            {t('save')}
           </button>
         </Sheet>
       )}
+
+      {lockOpen && (
+        <Sheet open onClose={() => setLockOpen(false)} title={t('lockTitle')}>
+          <div className="note note--warn" style={{ marginBottom: 'var(--space-4)' }}>
+            {t('lockHint')}
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="lock-pw">{t('lockPassword')}</label>
+            <input
+              id="lock-pw"
+              className="input"
+              type="password"
+              autoFocus
+              value={pw}
+              onChange={(e) => setPw(e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label className="field__label" htmlFor="lock-pw2">{t('lockPasswordRepeat')}</label>
+            <input
+              id="lock-pw2"
+              className="input"
+              type="password"
+              value={pw2}
+              onChange={(e) => setPw2(e.target.value)}
+            />
+          </div>
+          {lockError && <div className="note note--warn" style={{ marginBottom: 'var(--space-3)' }}>{lockError}</div>}
+          <button type="button" className="btn btn--primary btn--block" onClick={() => void submitLock()}>
+            {t('save')}
+          </button>
+        </Sheet>
+      )}
+
+      {exporting && <ExportSheet child={child} onClose={() => setExporting(false)} />}
     </>
   );
 }

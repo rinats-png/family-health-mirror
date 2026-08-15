@@ -405,29 +405,6 @@ input, select, textarea {
 .list-item__meta { font-size: 13px; color: var(--text-muted); margin-top: 1px; }
 .list-item__chevron { color: var(--text-muted); flex: none; }
 
-/* ---------- Statusanzeigen ---------- */
-
-.status {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: var(--radius-pill);
-  border: 1px solid;
-}
-
-.status--done { background: var(--ok-soft); color: var(--ok); border-color: var(--ok); }
-.status--upcoming { background: var(--surface-2); color: var(--text-muted); border-color: var(--border-strong); }
-.status--soon { background: var(--warning-soft); color: var(--warning-ink); border-color: var(--warning); }
-.status--due { background: var(--warning-soft); color: var(--warning-ink); border-color: var(--warning); }
-.status--overdue { background: var(--critical-soft); color: var(--critical); border-color: var(--critical); }
-.status--expired { background: var(--surface-2); color: var(--text-secondary); border-color: var(--border-strong); }
-
-:root[data-theme='dark'] .status--soon,
-:root[data-theme='dark'] .status--due { color: var(--warning); }
-
 /* ---------- Kalender ---------- */
 
 .calendar {
@@ -476,12 +453,15 @@ input, select, textarea {
 
 .day--empty { background: none; }
 .day--today { border-color: var(--action); }
-.day--symptom { background: var(--brand); color: var(--brand-ink); }
-.day--fever { background: var(--warning-soft); border-color: var(--warning); color: var(--warning-ink); }
 .day--selected { outline: 3px solid var(--action); outline-offset: 1px; }
 
-/* Symbol zusätzlich zur Farbe — Farbe darf nie allein informieren. */
-.day__mark { font-size: 9px; line-height: 1; }
+/*
+ * Ein Tag mit Einträgen bekommt Punkte in den Farben der vom Nutzer gewählten
+ * Kategorien. Es gibt bewusst keine Flächenfärbung nach Art oder Menge der
+ * Einträge — die Farbe unterscheidet Kategorien, sie stuft nichts ein.
+ */
+.day__dots { display: flex; gap: 2px; height: 6px; align-items: center; }
+.day__dot { width: 5px; height: 5px; border-radius: 50%; }
 
 .legend {
   display: flex;
@@ -526,9 +506,6 @@ input, select, textarea {
   border-radius: 2px;
   background: var(--surface-2);
 }
-
-.year__cell--symptom { background: var(--brand); }
-.year__cell--fever { background: var(--warning); }
 
 /* ---------- Hinweise ---------- */
 

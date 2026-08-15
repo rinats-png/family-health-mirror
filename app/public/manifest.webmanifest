@@ -1,7 +1,7 @@
 {
-  "name": "KinderGesundheit+",
-  "short_name": "KiGes+",
-  "description": "Krankheiten, Impfungen und Entwicklung des Kindes dokumentieren — lokal auf dem Gerät, ohne Konto.",
+  "name": "Kinder-Gesundheitstagebuch",
+  "short_name": "Tagebuch",
+  "description": "Privates Tagebuch für Beobachtungen, Messwerte und Ereignisse rund um die Gesundheit des eigenen Kindes. Alles bleibt auf dem Gerät.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
