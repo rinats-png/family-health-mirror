@@ -109,10 +109,10 @@ Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine Rollentrenn
 | Verlauf | `--bg-from` / `--bg-to` | `#F7E3CC` → `#E8CBA9` | Hintergrund jedes Bildschirms |
 | Text darauf | `--brand-ink` | `#262223` | 9,61:1 auf `--brand` |
 | Sekundärtext darauf | `--brand-muted` | `#54443A` | 5,66:1 auf `--brand` |
-| Kante von Flächen | `--brand-line` | `#6B5039` | 4,80:1 gegen die Karte, 5,71:1 gegen den Verlauf |
+| Kante von Flächen | `--brand-line` | `#6B5039` | 4,07:1 gegen die Karte, 4,78:1 gegen den Verlauf |
 | Trennlinie | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
-| Karte, Blatt | `--surface` | `#BCA89B` | Hauptfarbe, 15 % abgedunkelt |
-| Erhabene Fläche | `--surface-2` | `#CFBBAE` | Symbolkreise, aktive Pille, Eingabefelder |
+| Karte, Blatt | `--surface` | `#D2BCAD` | Hauptfarbe, 5 % abgedunkelt |
+| Erhabene Fläche | `--surface-2` | `#E4D2C5` | Symbolkreise, aktive Pille, Eingabefelder — heller als die Karte |
 | Handlung | `--action` | `#0D4353` | Buttons, Auswahlzustände, Fokusring |
 | Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,38:1) |
 

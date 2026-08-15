@@ -67,8 +67,10 @@ const PAIRS = [
   ['Kante einer Karte gegen den hellen Verlaufston', 'brand-line', 'bg-from', 3],
   ['Kante eines Symbolkreises auf der erhabenen Flaeche', 'brand-line', 'surface-2', 3],
   ['Aktiver Tab auf gefuellter Pille', 'action', 'surface-2', 4.5],
-  // Der dezente Absatz Karte/Verlauf ist gewollt und deshalb nach oben begrenzt.
-  ['Karte hebt sich vom Verlauf ab (dezent)', 'surface', 'bg-to', 1.2],
+  // Der Absatz Karte/Verlauf ist bewusst sehr leise (Fläche = Hauptfarbe −5 %).
+  // Er trägt die Abgrenzung nicht — das tut die Kante, geprüft mit 3:1 weiter
+  // oben. Hier wird nur sichergestellt, dass die Karte überhaupt absetzt.
+  ['Karte hebt sich vom Verlauf ab (dezent)', 'surface', 'bg-to', 1.1],
   ['Trennlinie in der gruppierten Liste', 'border', 'surface', 1.2],
 
   // Text auf Flächen
