@@ -267,7 +267,7 @@ export function openPdf(state: AppState, child: Child, options: PdfOptions): voi
                     border: 1px solid #333; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,.2); }
   @media print { .noprint { display: none; } }
 </style></head><body>
-<div class="noprint"><button onclick="window.print()">${esc(t('exportPrint'))}</button></div>
+<div class="noprint"><button id="print-button" type="button">${esc(t('exportPrint'))}</button></div>
 <header>
   <div class="banner">${esc(t('exportHeader'))}</div>
   <h1>${esc(child.name)}</h1>
@@ -293,4 +293,9 @@ ${options.includeVaccinations ? vaccinationsTable : ''}
   }
   win.document.write(html);
   win.document.close();
+
+  // Der Klick-Handler wird von hier aus gesetzt, nicht als onclick-Attribut im
+  // erzeugten Markup: Das neue Fenster erbt die Content-Security-Policy dieser
+  // Seite, und die verbietet Inline-Skripte.
+  win.document.getElementById('print-button')?.addEventListener('click', () => win.print());
 }

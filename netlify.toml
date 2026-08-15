@@ -1,0 +1,56 @@
+# Netlify-Konfiguration
+#
+# Ausgeliefert wird ausschließlich statisches Bundle aus app/dist. Es gibt keine
+# Serverless-Funktion, keine Datenbank und keinen Endpunkt, an den Nutzerdaten
+# gehen könnten — die Anwendung speichert alles im Browser des Nutzers.
+
+[build]
+  base = "app"
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+# Einzige Route. Die App hat keinen Router; der Fallback fängt Tiefenlinks und
+# den Start aus dem Standalone-Modus der PWA ab.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Sicherheits-Header.
+#
+# Die CSP erlaubt bewusst nur eigene Ressourcen: Es gibt keine Web-Font, kein
+# CDN, kein Analytics und keinen Netzwerkaufruf. `img-src data:` ist nötig, weil
+# Nutzerfotos als Data-URL im Browser gehalten werden; `style-src 'unsafe-inline'`
+# wegen der berechneten Inline-Styles (Kategoriefarben, Balkenbreiten).
+# Inline-Skripte sind nicht erlaubt — das PDF-Fenster erbt diese Richtlinie und
+# setzt seinen Druck-Handler deshalb aus dem Elternkontext.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Content-Security-Policy = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'; frame-ancestors 'none'; manifest-src 'self'"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer"
+    Permissions-Policy = "geolocation=(), microphone=(), camera=(self), interest-cohort=()"
+    Cross-Origin-Opener-Policy = "same-origin-allow-popups"
+    X-Frame-Options = "DENY"
+
+# Der Service Worker darf nicht aus dem Cache kommen, sonst bleibt eine alte
+# Fassung der App beliebig lange aktiv.
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
+
+# Vite vergibt gehashte Dateinamen — die dürfen dauerhaft im Cache bleiben.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
