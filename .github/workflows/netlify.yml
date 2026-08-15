@@ -1,0 +1,91 @@
+# Bauen, prüfen, veröffentlichen.
+#
+# Die Seite auf Netlify ist nicht mit dem Repository verbunden, sondern wird
+# per Upload befüllt. Dieser Workflow übernimmt diesen Upload, damit ein Push
+# nicht mehr von Hand nachgezogen werden muss.
+#
+# Einmalig einzurichten: ein Netlify-Zugriffstoken als Repository-Secret
+# NETLIFY_AUTH_TOKEN hinterlegen (Netlify → User settings → Applications →
+# Personal access tokens → New access token; im Repository unter
+# Settings → Secrets and variables → Actions → New repository secret).
+#
+# Ohne dieses Secret laufen die Prüfungen trotzdem — nur der Upload wird
+# übersprungen und im Protokoll als Warnung vermerkt. So schlägt der Workflow
+# nicht rot fehl, bloß weil das Token noch fehlt.
+#
+# Die Projekt-Kennung steht als Vorgabewert im Workflow und lässt sich über die
+# Repository-Variable NETLIFY_SITE_ID überschreiben, falls die Seite wechselt.
+
+name: Netlify
+
+on:
+  push:
+    branches: ['claude/health-tracking-app-kids-71kbwi']
+  workflow_dispatch:
+
+# Kein Schreibzugriff nötig: Der Workflow liest nur das Repository.
+permissions:
+  contents: read
+
+# Bei zwei Pushes kurz hintereinander gewinnt der neuere; sonst könnte ein
+# älterer Upload den neueren überholen.
+concurrency:
+  group: netlify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+      NETLIFY_SITE_ID: ${{ vars.NETLIFY_SITE_ID || '3eab4b19-9133-4cf7-957a-9d0d6c53c42e' }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Abhängigkeiten
+        working-directory: app
+        run: npm ci
+
+      # Die Prüfungen laufen VOR dem Upload. Ein Kontrastverstoß oder ein
+      # verbotener Begriff aus der Wortliste darf nicht veröffentlicht werden.
+      - name: Wortliste
+        working-directory: app
+        run: npm run check:wording
+
+      - name: Kontraste
+        working-directory: app
+        run: npm run check:contrast
+
+      - name: Lint
+        working-directory: app
+        run: npm run lint
+
+      - name: Build
+        working-directory: app
+        run: npm run build
+
+      # Aus dem Wurzelverzeichnis, damit netlify.toml gefunden wird: Von dort
+      # kommen die Weiterleitung und die Sicherheits-Header (CSP), nicht aus
+      # dem Bundle. --dir zeigt auf das fertige Bundle, gebaut wurde schon.
+      - name: Veröffentlichen
+        if: env.NETLIFY_AUTH_TOKEN != ''
+        run: |
+          npx --yes netlify-cli@17 deploy \
+            --prod \
+            --dir app/dist \
+            --site "$NETLIFY_SITE_ID" \
+            --message "${GITHUB_SHA::7} ${GITHUB_REF_NAME}"
+
+      - name: Hinweis, falls das Token fehlt
+        if: env.NETLIFY_AUTH_TOKEN == ''
+        run: |
+          echo "::warning title=Kein Upload::NETLIFY_AUTH_TOKEN ist nicht gesetzt." \
+               "Prüfungen und Build sind gelaufen, die Seite wurde nicht aktualisiert." \
+               "Token unter Settings → Secrets and variables → Actions hinterlegen."

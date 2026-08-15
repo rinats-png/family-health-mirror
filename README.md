@@ -83,6 +83,17 @@ npm run lint
 Die Wortlisten-Prüfung bricht mit Exit-Code 1 ab, sobald ein verbotener Begriff in
 einem Oberflächen- oder Store-Text auftaucht. Sie gehört in die CI.
 
+## Veröffentlichen
+
+Ein Push auf den Entwicklungszweig baut, prüft und veröffentlicht die Anwendung
+über [`.github/workflows/netlify.yml`](.github/workflows/netlify.yml). Die
+Prüfungen laufen vor dem Upload — ein Kontrastverstoß oder ein verbotener
+Begriff aus der Wortliste geht nicht online.
+
+Einmalig einzurichten ist ein Netlify-Zugriffstoken als Repository-Secret
+`NETLIFY_AUTH_TOKEN`. Fehlt es, laufen Prüfungen und Build trotzdem; der Upload
+wird übersprungen und im Protokoll als Warnung vermerkt.
+
 ## Vor Marktbereitstellung zu klären
 
 1. **Juristische Prüfung der Abgrenzung** durch eine auf MDR spezialisierte
