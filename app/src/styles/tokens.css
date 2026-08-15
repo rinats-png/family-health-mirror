@@ -20,11 +20,11 @@
 :root {
   /* Hauptfarbe — Flächen und Rahmen, niemals als Textfarbe */
   --brand: #ddc6b6;
-  --brand-soft: #f0e5dd;
-  --brand-strong: #bc9c82;      /* sichtbare Kante der Marken-Flächen */
+  --brand-soft: #cfbbae;        /* erhabene Fläche AUF einer Karte */
+  --brand-strong: #bc9c82;      /* Trennlinien */
   --brand-ink: #262223;         /* Haupttext AUF --brand — 9,61:1 */
   --brand-muted: #54443a;       /* Sekundärtext AUF --brand — 5,66:1 */
-  --brand-line: #8a6b52;        /* Kante von Flächen auf warmem Grund */
+  --brand-line: #6b5039;        /* Kante: 3,25:1 zur Karte, 4,78:1 zum Verlauf */
 
   /*
    * Hintergrund als Verlauf aus der Hauptfarbe. Der tiefste Ton --bg-to ist
@@ -34,16 +34,33 @@
   --bg-from: #f7e3cc;
   --bg-to: #e8cba9;
 
-  --surface: #fcf5f0;           /* Karten und Blätter, warmes Creme */
-  --surface-2: #f5e9e0;
+  /*
+   * Flächen sind die Hauptfarbe, um 15 % abgedunkelt. Damit sitzt jede Karte
+   * eine Spur dunkler als der Verlauf (1,47:1 bis 1,83:1) — der gewünschte
+   * dezente Absatz. Weil das für eine Abgrenzung nicht reicht, trägt die
+   * Kante --brand-line die Trennung.
+   *
+   * --surface ist der SOLIDE Wert. Er ist zugleich der Prüfmaßstab: Das
+   * Glas-Komposit über dem Verlauf liegt bei #C8B29F bis #CDB9A9 und damit
+   * heller, also kontrastreicher. Gegen den soliden Wert zu rechnen ist die
+   * vorsichtige Variante.
+   */
+  --surface: #bca89b;
+  --surface-2: #cfbbae;
+
+  /* Glas: halbtransparente Füllung plus Unschärfe dahinter. */
+  --surface-glass: rgba(188, 168, 155, 0.72);
+  --chrome-glass: rgba(188, 168, 155, 0.88);
+  --glass-blur: 18px;
+  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.38);
 
   --text: #262223;
   --text-secondary: #023441;
-  --text-muted: #655047;        /* 6,97:1 auf Karte, 4,85:1 auf --bg-to */
+  --text-muted: #483630;        /* 4,99:1 auf der Karte, 7,34:1 auf --bg-to */
 
-  --action: #135a70;            /* 4,97:1 auf --bg-to, 7,71:1 für weißen Text */
-  --action-hover: #0f4c5e;
-  --action-soft: #e3f0f5;
+  --action: #0d4353;            /* 4,74:1 auf der Karte, 10,80:1 für weißen Text */
+  --action-hover: #0a3542;
+  --action-soft: #cfbbae;
   --accent: #65abc4;            /* dekorativ: Diagramme, Linien */
 
   --warning: #e88c2b;
@@ -54,8 +71,8 @@
   --ok: #2f6b4f;
   --ok-soft: #e4f0ea;
 
-  --border: #e4d3c4;
-  --border-strong: #8a6b52;
+  --border: #a8917f;
+  --border-strong: #6b5039;
 
   --radius-tile: 20px;
   --radius-card: 28px;
@@ -95,8 +112,12 @@
   --bg-from: #241c17;
   --bg-to: #16110e;
 
-  --surface: #2a211c;
-  --surface-2: #342a23;
+  --surface: #322721;
+  --surface-2: #3f322a;
+
+  --surface-glass: rgba(50, 39, 33, 0.76);
+  --chrome-glass: rgba(50, 39, 33, 0.92);
+  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.09);
 
   --text: #f4eee9;
   --text-secondary: #dbcec4;
@@ -104,7 +125,7 @@
 
   --action: #7fc2da;
   --action-hover: #a5d5e6;
-  --action-soft: #14313b;
+  --action-soft: #3a2f28;
   --accent: #65abc4;
 
   --warning: #f0a758;
@@ -115,7 +136,7 @@
   --ok: #7fc79f;
   --ok-soft: #163023;
 
-  --border: #3d3128;
+  --border: #4d3f34;
   --border-strong: #a08a78;
 
   --shadow-tile: 0 1px 2px rgba(0, 0, 0, 0.45);

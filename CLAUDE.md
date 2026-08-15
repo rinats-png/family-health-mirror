@@ -37,7 +37,17 @@ sie zu streichen, nicht zu übersetzen:
 Schnelleingabe, die Farbhierarchie (mit der Korrektur aus 1.2), Listen- und
 Kalenderansichten für Verläufe, und das Mantra **Eingabe in unter zehn Sekunden**.
 
-### 0.2 Farbregel mit regulatorischer Wirkung
+### 0.2 Bildzeichen sind Aussagen
+
+Ein Symbol trifft eine Aussage über die Zweckbestimmung wie jeder Text. Nicht
+verwendbar sind deshalb: **EKG-/Herzschlagkurven** (Bildzeichen für
+Vitalzeichen-Messung — die Anwendung misst nichts), Ampeln, Smileys als
+Gesamtbewertung, Warndreiecke an Gesundheitsinhalten, Stethoskope oder
+Kreuze in der Wortmarke.
+
+Unbedenklich und verwendet: Herzkontur, Figurengruppe, Kalender, Stift.
+
+### 0.3 Farbregel mit regulatorischer Wirkung
 
 `--warning` (`#E88C2B`) und `--critical` (`#4E0401`) dürfen **niemals** einen
 Gesundheitszustand kennzeichnen. Warnfarben implizieren eine Bewertung. Sie sind
@@ -99,10 +109,11 @@ Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine Rollentrenn
 | Verlauf | `--bg-from` / `--bg-to` | `#F7E3CC` → `#E8CBA9` | Hintergrund jedes Bildschirms |
 | Text darauf | `--brand-ink` | `#262223` | 9,61:1 auf `--brand` |
 | Sekundärtext darauf | `--brand-muted` | `#54443A` | 5,66:1 auf `--brand` |
-| Kante von Flächen | `--brand-line` | `#8A6B52` | 4,52:1 gegen die Karte, 3,15:1 gegen den Verlauf |
+| Kante von Flächen | `--brand-line` | `#6B5039` | 4,80:1 gegen die Karte, 5,71:1 gegen den Verlauf |
 | Trennlinie | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
-| Karte, Blatt | `--surface` | `#FCF5F0` | warmes Creme statt Weiß |
-| Handlung | `--action` | `#135A70` | Buttons, Auswahlzustände, Fokusring |
+| Karte, Blatt | `--surface` | `#BCA89B` | Hauptfarbe, 15 % abgedunkelt |
+| Erhabene Fläche | `--surface-2` | `#CFBBAE` | Symbolkreise, aktive Pille, Eingabefelder |
+| Handlung | `--action` | `#0D4353` | Buttons, Auswahlzustände, Fokusring |
 | Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,38:1) |
 
 **Warum die Kante eigene Aufmerksamkeit braucht — die wichtigste Lehre aus dem
@@ -120,6 +131,24 @@ nie über Farbe allein.
 
 Kommt aus Figma ein Primärbutton in `#DDC6B6`, wird er auf `--action` gemappt und
 die Abweichung im PR vermerkt.
+
+#### Glas: halbtransparente Flächen
+
+Karten, Kopfzeile, Fußnavigation und Blätter sind halbtransparent mit
+`backdrop-filter`. Drei Regeln dazu:
+
+1. **`--surface` ist der solide Wert und zugleich der Prüfmaßstab.** Das
+   Komposit über dem Verlauf liegt bei `#C8B29F` bis `#CDB9A9`, also *heller*
+   als der solide Wert — gegen den soliden zu rechnen ist die vorsichtige
+   Variante.
+2. **Kopfzeile und Fußnavigation nutzen `--chrome-glass` mit höherer Deckkraft**
+   (0,88 statt 0,72). Dahinter scrollt Inhalt durch; bei niedriger Deckkraft
+   könnte dunkler Text darunter das Komposit lokal absenken.
+3. **Eingabefelder bleiben deckend.** Unschärfe hinter getipptem Text macht das
+   Lesen schwerer, und genau dort zählt Genauigkeit.
+
+Eine Fläche aus Glas grenzt sich nie über die Füllung ab — immer über
+`--brand-line`.
 
 #### Die Kontrastregel ist durchgesetzt, nicht dokumentiert
 
@@ -244,6 +273,9 @@ wenn sie eigenen Zustand oder eigene Interaktionslogik hat (wie `Sheet`).
 | Toast mit Rückgängig | `.toast`, `.toast__action` | global.css |
 | Pro-Kennzeichnung | `.pro-badge` | global.css |
 | Zweckbestimmungs-Fußtext | `.disclaimer` | global.css |
+
+**Glas-Tokens:** `--surface-glass`, `--chrome-glass`, `--glass-blur`,
+`--glass-sheen` (heller Innenrand für den Glanz).
 
 Hilfsklassen: `.row`, `.row--between`, `.row--wrap`, `.stack`, `.grow`, `.muted`,
 `.small`, `.center`, `.tabular` (Ziffern mit fester Breite — für alle Messwerte und

@@ -108,13 +108,16 @@ input, select, textarea {
   gap: var(--space-2);
   margin: var(--space-3) var(--space-3) 0;
   padding: var(--space-2);
-  background: var(--surface);
+  /* Hinter Kopfzeile und Fußnavigation scrollt Inhalt durch. Deshalb hier
+     eine höhere Deckkraft als bei den Karten: Sonst könnte dunkler Text
+     dahinter das Komposit lokal absenken und die Beschriftung schwächen. */
+  background: var(--chrome-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   color: var(--text);
-  /* Die Füllung der Pille erreicht gegen den Verlauf nur etwa 1,05:1 —
-     die Abgrenzung muss deshalb die Kante tragen. */
   border: 1px solid var(--brand-line);
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-tile);
+  box-shadow: var(--shadow-tile), var(--glass-sheen);
 }
 
 .child-switch {
@@ -165,16 +168,18 @@ input, select, textarea {
   display: block;
   width: 100%;
   text-align: left;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--brand-line);
   border-radius: var(--radius-tile);
   padding: var(--space-4);
-  box-shadow: var(--shadow-tile);
+  box-shadow: var(--shadow-tile), var(--glass-sheen);
   min-height: 110px;
 }
 
 .tile--wide { grid-column: 1 / -1; }
-.tile--brand { background: var(--brand-soft); border-color: var(--brand); }
+.tile--brand { background: var(--brand-soft); border-color: var(--brand-line); }
 
 .tile__label {
   font-size: 11px;
@@ -214,8 +219,8 @@ input, select, textarea {
   justify-content: center;
   gap: 4px;
   padding: var(--space-2) 4px;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-2);
+  border: 1px solid var(--brand-line);
   border-radius: var(--radius-control);
   font-size: 12px;
   font-weight: 600;
@@ -239,8 +244,8 @@ input, select, textarea {
   border-radius: var(--radius-control);
   border: 1px solid transparent;
   font-weight: 600;
-  background: var(--surface);
-  border-color: var(--border);
+  background: var(--surface-2);
+  border-color: var(--brand-line);
   color: var(--text);
 }
 
@@ -271,6 +276,8 @@ input, select, textarea {
   margin-bottom: 6px;
 }
 
+/* Eingabefelder bleiben deckend: Unschärfe hinter getipptem Text macht das
+   Lesen schwerer, und das Feld ist der Ort, an dem Genauigkeit zählt. */
 .input,
 .select,
 .textarea {
@@ -279,7 +286,7 @@ input, select, textarea {
   padding: 10px var(--space-3);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-control);
-  background: var(--surface);
+  background: var(--surface-2);
 }
 
 .textarea { min-height: 84px; resize: vertical; }
@@ -295,7 +302,7 @@ input, select, textarea {
   padding: 0 var(--space-3);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-pill);
-  background: var(--surface);
+  background: var(--surface-2);
   font-size: 14px;
   font-weight: 600;
 }
@@ -326,9 +333,12 @@ input, select, textarea {
   max-width: 560px;
   max-height: 92vh;
   overflow-y: auto;
-  background: var(--surface);
+  background: var(--chrome-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-top: 1px solid var(--brand-line);
   border-radius: 20px 20px 0 0;
-  box-shadow: var(--shadow-sheet);
+  box-shadow: var(--shadow-sheet), var(--glass-sheen);
   padding: var(--space-3) var(--space-4) var(--space-5);
 }
 
@@ -366,10 +376,12 @@ input, select, textarea {
   margin: 0 auto;
   margin: 0 var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
   padding: var(--space-1);
-  background: var(--surface);
+  background: var(--chrome-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--brand-line);
   border-radius: var(--radius-pill);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card), var(--glass-sheen);
 }
 
 .tabbar__item {
@@ -543,7 +555,9 @@ input, select, textarea {
 }
 
 .empty {
-  background: var(--surface);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px dashed var(--border-strong);
   border-radius: var(--radius-tile);
   padding: var(--space-5);
@@ -643,11 +657,13 @@ input, select, textarea {
   gap: var(--space-3);
   min-height: 286px;
   padding: var(--space-5) var(--space-4) var(--space-3);
-  background: var(--surface);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   /* Gegen den Verlauf trägt die Kante die Abgrenzung, nicht die Füllung. */
   border: 1px solid var(--brand-line);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-card), var(--glass-sheen);
   color: var(--text);
 }
 
@@ -730,12 +746,14 @@ input, select, textarea {
 
 /* Die Liste als zusammenhängende Karte, wie im Entwurf. */
 .list--grouped {
-  background: var(--surface);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--brand-line);
   border-radius: var(--radius-tile);
   overflow: hidden;
   gap: 0;
-  box-shadow: var(--shadow-tile);
+  box-shadow: var(--shadow-tile), var(--glass-sheen);
 }
 
 .list--grouped .list-item {

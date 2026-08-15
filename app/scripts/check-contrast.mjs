@@ -64,8 +64,12 @@ const PAIRS = [
   ['Trennlinie auf der Hauptfarbe', 'brand-strong', 'brand', 1.5],
   ['Kante einer Karte gegen ihre Fuellung', 'brand-line', 'surface', 3],
   ['Kante einer Karte gegen den Verlauf', 'brand-line', 'bg-to', 3],
-  ['Kante eines Symbolkreises auf brand-soft', 'brand-line', 'brand-soft', 3],
-  ['Aktiver Tab auf gefuellter Pille', 'action', 'brand-soft', 4.5],
+  ['Kante einer Karte gegen den hellen Verlaufston', 'brand-line', 'bg-from', 3],
+  ['Kante eines Symbolkreises auf der erhabenen Flaeche', 'brand-line', 'surface-2', 3],
+  ['Aktiver Tab auf gefuellter Pille', 'action', 'surface-2', 4.5],
+  // Der dezente Absatz Karte/Verlauf ist gewollt und deshalb nach oben begrenzt.
+  ['Karte hebt sich vom Verlauf ab (dezent)', 'surface', 'bg-to', 1.2],
+  ['Trennlinie in der gruppierten Liste', 'border', 'surface', 1.2],
 
   // Text auf Flächen
   ['Haupttext auf Fläche', 'text', 'surface', 4.5],
@@ -74,7 +78,7 @@ const PAIRS = [
   ['Gedämpfter Text auf Fläche', 'text-muted', 'surface', 4.5],
   ['Gedaempfter Text auf dem hellen Verlaufston', 'text-muted', 'bg-from', 4.5],
   ['Gedaempfter Text auf dem tiefen Verlaufston', 'text-muted', 'bg-to', 4.5],
-  ['Gedämpfter Text auf Fläche 2', 'text-muted', 'surface-2', 4.5],
+  ['Gedaempfter Text auf der erhabenen Flaeche', 'text-muted', 'surface-2', 4.5],
 
   // Bedienelemente
   ['Handlungsfarbe auf Fläche', 'action', 'surface', 4.5],

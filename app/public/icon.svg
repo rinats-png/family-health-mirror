@@ -1,5 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="KinderGesundheit+">
-  <rect width="512" height="512" rx="112" fill="#DDC6B6"/>
-  <path d="M256 396c-8 0-15-3-21-8-64-56-119-105-119-165 0-45 34-79 79-79 24 0 47 11 61 29 14-18 37-29 61-29 45 0 79 34 79 79 0 60-55 109-119 165-6 5-13 8-21 8z" fill="#16657E"/>
-  <path d="M256 168v128M192 232h128" stroke="#DDC6B6" stroke-width="26" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img"
+     aria-label="Kinder-Gesundheitstagebuch">
+  <!--
+    App-Symbol.
+
+    Übernommen aus der Vorlage: Herzkontur als Rahmen, darin eine Figurengruppe,
+    das Kind in der Sekundärfarbe abgesetzt.
+
+    Auf zwei Figuren reduziert: Drei Figuren verschmelzen bei 48 px und darunter
+    zu einem Fleck — geprüft durch Rendern in 192, 120, 72, 48 und 32 px.
+
+    Bewusst NICHT übernommen: die EKG-Linie. Ein Herzschlag-Diagramm ist das
+    verbreitetste Bildzeichen für Vitalzeichen-Messung. Diese Anwendung misst
+    nichts — sie hält fest, was Eltern eintragen. Ein Bildzeichen ist eine
+    Aussage über die Zweckbestimmung wie jeder Text (siehe REGULATORY.md §6).
+  -->
+  <rect width="512" height="512" rx="112" fill="#ddc6b6"/>
+
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Herzkontur -->
+    <path d="M256 406
+             C 146 334, 90 276, 90 212
+             a 78 78 0 0 1 156 -28
+             a 7 7 0 0 0 20 0
+             a 78 78 0 0 1 156 28
+             c 0 64, -56 122, -166 194 z"
+          stroke="#6b5039" stroke-width="22"/>
+
+    <!-- Erwachsener -->
+    <circle cx="222" cy="222" r="34" stroke="#6b5039" stroke-width="20"/>
+    <path d="M164 324 a 58 58 0 0 1 116 0" stroke="#6b5039" stroke-width="20"/>
+
+    <!-- Kind in der Sekundärfarbe -->
+    <circle cx="316" cy="252" r="25" stroke="#0d4353" stroke-width="20"/>
+    <path d="M274 326 a 42 42 0 0 1 84 0" stroke="#0d4353" stroke-width="20"/>
+  </g>
 </svg>
