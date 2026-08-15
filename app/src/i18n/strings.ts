@@ -69,6 +69,11 @@ export const STRINGS = {
 
     // Heute
     quickEntry: 'Schnelleintrag',
+    lastEntryOn: 'Zuletzt',
+    noEntryYet: 'Noch kein Eintrag',
+    allCategories: 'Alle Kategorien',
+    enterNow: 'Eintragen',
+    cardOf: 'Karte',
     quickEntryHint:
       'Ein Tippen genügt — der Eintrag ist sofort gespeichert. Ergänzen können Sie danach.',
     recentEntries: 'Letzte Einträge',
@@ -293,6 +298,11 @@ export const STRINGS = {
     obBirthLabel: 'Date of birth',
 
     quickEntry: 'Quick record',
+    lastEntryOn: 'Last',
+    noEntryYet: 'Nothing written down yet',
+    allCategories: 'All categories',
+    enterNow: 'Write it down',
+    cardOf: 'Card',
     quickEntryHint:
       'One tap is enough — the record is saved right away. You can add details afterwards.',
     recentEntries: 'Recent records',

@@ -1,10 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useI18n } from '../i18n';
 import { categoryLabel, visibleCategories } from '../domain/categories';
 import {
   dayOf,
   formatAge,
   formatDateLong,
+  formatDateShort,
   formatDateTimeShort,
   formatTime,
   fromLocalInputValue,
@@ -14,16 +15,20 @@ import {
 } from '../domain/dates';
 import { celsiusToDisplay, formatNumber } from '../domain/units';
 import { useActions, useStore } from '../store/store';
-import type { Child, Entry } from '../domain/types';
+import type { Category, Child, Entry } from '../domain/types';
+import { CardArt } from '../ui/CardArt';
 import { Sheet } from '../ui/Sheet';
 
 /**
- * Startbildschirm (Abschnitt 6: Schnelleintragskacheln plus die letzten Einträge).
+ * Startbildschirm: wischbare Karten für den Schnelleintrag, darunter die
+ * letzten Einträge und die selbst gesetzten Erinnerungen.
  *
- * Das Tippen auf eine Kachel legt den Eintrag sofort an. Die Kacheln stehen
- * oben im Daumenbereich; darunter stehen die letzten Einträge und die vom
- * Nutzer selbst gesetzten Erinnerungen. Nichts auf diesem Bildschirm ist
- * berechnet — es gibt keine Tageslage, keinen Status, keine Kennzahl.
+ * Was auf einer Karte steht, ist ausschließlich Bestand: die Kategorie, die der
+ * Nutzer benannt hat, und das Datum seines letzten Eintrags darin. Bewusst
+ * nicht: eine Dauer („seit 3 Tagen"), eine Einordnung („erhöhte Temperatur")
+ * oder ein Zustand. Eine Dauer würde behaupten, dass mehrere Einträge ein
+ * durchgehendes Geschehen sind — das ist eine Aussage der Anwendung, keine des
+ * Nutzers.
  */
 export function Today({
   child,
@@ -35,29 +40,56 @@ export function Today({
   const { t, locale } = useI18n();
   const { state } = useStore();
   const { addEntry, addReminder, updateReminder, removeReminder } = useActions();
+
   const [reminderOpen, setReminderOpen] = useState(false);
+  const [allOpen, setAllOpen] = useState(false);
   const [reminderText, setReminderText] = useState('');
   const [reminderAt, setReminderAt] = useState(() => toLocalInputValue(nowISO()));
+  const [activeCard, setActiveCard] = useState(0);
+  const trackRef = useRef<HTMLDivElement>(null);
 
-  // Alle sichtbaren Kacheln anzeigen: Abschnitt 4.2 nennt zehn Standardkacheln,
-  // und eine Kachel, die man erst suchen muss, verfehlt das Zehn-Sekunden-Ziel.
-  // Ausblenden entscheidet der Nutzer im Profil, nicht die Anwendung.
-  const tiles = visibleCategories(state.categories);
+  const childEntries = useMemo(
+    () => state.entries.filter((e) => e.childId === child.id),
+    [state.entries, child.id],
+  );
+
+  /** Letzter Eintrag je Kategorie — reine Auszählung der eigenen Einträge. */
+  const lastUse = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const entry of childEntries) {
+      for (const id of entry.categoryIds) {
+        const current = map.get(id);
+        if (!current || entry.at > current) map.set(id, entry.at);
+      }
+    }
+    return map;
+  }, [childEntries]);
+
+  /**
+   * Zuletzt Genutztes zuerst. Das ist Anordnung der Oberfläche, keine Aussage
+   * über das Kind — und hält den Weg zum häufigen Fall kurz.
+   */
+  const cards = useMemo(() => {
+    const visible = visibleCategories(state.categories);
+    return [...visible].sort((a, b) => {
+      const ua = lastUse.get(a.id);
+      const ub = lastUse.get(b.id);
+      if (ua && ub) return ub.localeCompare(ua);
+      if (ua) return -1;
+      if (ub) return 1;
+      return a.order - b.order;
+    });
+  }, [state.categories, lastUse]);
 
   const recent = useMemo(
-    () =>
-      state.entries
-        .filter((e) => e.childId === child.id)
-        .sort((a, b) => b.at.localeCompare(a.at))
-        .slice(0, 8),
-    [state.entries, child.id],
+    () => [...childEntries].sort((a, b) => b.at.localeCompare(a.at)).slice(0, 6),
+    [childEntries],
   );
 
   const reminders = useMemo(
     () =>
       state.reminders
-        .filter((r) => !r.childId || r.childId === child.id)
-        .filter((r) => !r.doneAt)
+        .filter((r) => (!r.childId || r.childId === child.id) && !r.doneAt)
         .sort((a, b) => a.at.localeCompare(b.at)),
     [state.reminders, child.id],
   );
@@ -70,7 +102,29 @@ export function Today({
       tags: [],
       temperatureUnit: state.settings.temperatureUnit,
     });
+    setAllOpen(false);
     onOpenEntry(entry);
+  };
+
+  const onTrackScroll = () => {
+    const el = trackRef.current;
+    if (!el) return;
+    const card = el.firstElementChild as HTMLElement | null;
+    if (!card) return;
+    const step = card.offsetWidth + 12;
+    setActiveCard(Math.min(cards.length, Math.max(0, Math.round(el.scrollLeft / step))));
+  };
+
+  const scrollToCard = (index: number) => {
+    const el = trackRef.current;
+    const card = el?.firstElementChild as HTMLElement | null;
+    if (!el || !card) return;
+    el.scrollTo({ left: index * (card.offsetWidth + 12), behavior: 'smooth' });
+  };
+
+  const cardMeta = (category: Category): string => {
+    const at = lastUse.get(category.id);
+    return at ? `${t('lastEntryOn')}: ${formatDateShort(dayOf(at), locale)}` : t('noEntryYet');
   };
 
   const describe = (entry: Entry): string => {
@@ -90,29 +144,69 @@ export function Today({
     return parts.join(' · ');
   };
 
+  const iconOf = (entry: Entry): string => {
+    const first = entry.categoryIds
+      .map((id) => state.categories.find((c) => c.id === id))
+      .find(Boolean);
+    return first?.icon ?? '✎';
+  };
+
   return (
     <>
-      <div className="screen-head">
+      <div className="screen-head center">
         <div className="screen-sub">{formatDateLong(todayISO(), locale)}</div>
         <h1 className="screen-title">{child.name}</h1>
         <div className="screen-sub">{formatAge(child.birthDate, locale)}</div>
       </div>
 
-      <section className="quickbar" aria-labelledby="quick-title">
-        <div className="tile__label" id="quick-title">{t('quickEntry')}</div>
-        <div className="chips">
-          {tiles.map((c) => (
-            <button key={c.id} type="button" className="chip" onClick={() => create(c.id)}>
-              <span className="chip__icon" aria-hidden>{c.icon}</span>
-              <span>{categoryLabel(c, locale)}</span>
-            </button>
+      <section aria-labelledby="quick-title">
+        <h2 className="section__title center" id="quick-title">{t('quickEntry')}</h2>
+
+        <div className="storycards" ref={trackRef} onScroll={onTrackScroll}>
+          {cards.map((category, index) => (
+            <article className="storycard" key={category.id}
+              aria-label={categoryLabel(category, locale)}>
+              <span className="storycard__badge" aria-hidden>{category.icon}</span>
+              <h3 className="storycard__title">{categoryLabel(category, locale)}</h3>
+              <p className="storycard__meta">{cardMeta(category)}</p>
+              {/* Ohne aria-label hießen alle Karten-Buttons gleich; per
+                  Screenreader wäre dann nicht unterscheidbar, welche
+                  Kategorie man auslöst. */}
+              <button
+                type="button"
+                className="btn btn--primary"
+                aria-label={`${categoryLabel(category, locale)} ${t('enterNow')}`}
+                onClick={() => create(category.id)}
+              >
+                + {t('enterNow')}
+              </button>
+              <CardArt variant={index} />
+            </article>
           ))}
-          <button type="button" className="chip" onClick={() => create()}>
-            <span className="chip__icon" aria-hidden>＋</span>
-            <span>{t('moreTile')}</span>
-          </button>
+
+          <article className="storycard storycard--more">
+            <span className="storycard__badge" aria-hidden>＋</span>
+            <h3 className="storycard__title">{t('allCategories')}</h3>
+            <p className="storycard__meta">{t('quickEntryHint')}</p>
+            <button type="button" className="btn btn--ghost" onClick={() => setAllOpen(true)}>
+              {t('allCategories')}
+            </button>
+          </article>
         </div>
-        <p className="small muted" style={{ marginTop: 'var(--space-3)' }}>{t('quickEntryHint')}</p>
+
+        <div className="dots" role="tablist" aria-label={t('quickEntry')}>
+          {[...cards, null].map((category, index) => (
+            <button
+              key={category ? category.id : 'more'}
+              type="button"
+              className="dot"
+              role="tab"
+              aria-current={activeCard === index}
+              aria-label={`${t('cardOf')} ${index + 1}`}
+              onClick={() => scrollToCard(index)}
+            />
+          ))}
+        </div>
       </section>
 
       <section className="section">
@@ -120,17 +214,25 @@ export function Today({
         {recent.length === 0 ? (
           <div className="empty">{t('noEntriesYet')}</div>
         ) : (
-          <div className="list">
-            {recent.map((e) => (
-              <button key={e.id} type="button" className="list-item" onClick={() => onOpenEntry(e)}>
+          <div className="list list--grouped">
+            {recent.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className="list-item"
+                onClick={() => onOpenEntry(entry)}
+              >
+                <span className="list-item__badge" aria-hidden>{iconOf(entry)}</span>
                 <div className="list-item__main">
-                  <div className="list-item__title">
-                    {dayOf(e.at) === todayISO()
-                      ? `${t('today')}, ${formatTime(e.at)}`
-                      : formatDateTimeShort(e.at, locale)}
+                  <div className="list-item__title">{describe(entry) || t('entryTitle')}</div>
+                  <div className="list-item__meta">
+                    {dayOf(entry.at) === todayISO()
+                      ? `${t('today')}, ${formatTime(entry.at)}`
+                      : formatDateTimeShort(entry.at, locale)}
                   </div>
-                  <div className="list-item__meta">{describe(e) || t('entryTitle')}</div>
-                  {e.note && <div className="list-item__meta">„{e.note}"</div>}
+                  {/* Die Notiz ist das, was der Nutzer selbst geschrieben hat —
+                      sie gehört in die Übersicht, nicht nur ins Detail. */}
+                  {entry.note && <div className="list-item__meta">„{entry.note}"</div>}
                 </div>
                 <span className="list-item__chevron" aria-hidden>›</span>
               </button>
@@ -144,17 +246,18 @@ export function Today({
         {reminders.length === 0 ? (
           <div className="empty">{t('reminderNone')}</div>
         ) : (
-          <div className="list">
-            {reminders.map((r) => (
-              <div key={r.id} className="list-item">
+          <div className="list list--grouped">
+            {reminders.map((reminder) => (
+              <div key={reminder.id} className="list-item">
+                <span className="list-item__badge" aria-hidden>⏱</span>
                 <div className="list-item__main">
-                  <div className="list-item__title">{r.text}</div>
-                  <div className="list-item__meta">{formatDateTimeShort(r.at, locale)}</div>
+                  <div className="list-item__title">{reminder.text}</div>
+                  <div className="list-item__meta">{formatDateTimeShort(reminder.at, locale)}</div>
                 </div>
                 <button
                   type="button"
                   className="btn btn--sm btn--ghost"
-                  onClick={() => updateReminder(r.id, { doneAt: nowISO() })}
+                  onClick={() => updateReminder(reminder.id, { doneAt: nowISO() })}
                 >
                   {t('reminderDone')}
                 </button>
@@ -162,7 +265,7 @@ export function Today({
                   type="button"
                   className="btn btn--sm btn--ghost"
                   aria-label={t('delete')}
-                  onClick={() => removeReminder(r.id)}
+                  onClick={() => removeReminder(reminder.id)}
                 >
                   ✕
                 </button>
@@ -186,6 +289,32 @@ export function Today({
       </section>
 
       <p className="disclaimer">{t('purposeShort')}</p>
+
+      {allOpen && (
+        <Sheet open onClose={() => setAllOpen(false)} title={t('allCategories')}>
+          <div className="chips">
+            {visibleCategories(state.categories).map((category) => (
+              <button
+                key={category.id}
+                type="button"
+                className="chip"
+                onClick={() => create(category.id)}
+              >
+                <span className="chip__icon" aria-hidden>{category.icon}</span>
+                <span>{categoryLabel(category, locale)}</span>
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="btn btn--ghost btn--block"
+            style={{ marginTop: 'var(--space-4)' }}
+            onClick={() => create()}
+          >
+            {t('entryTitle')}
+          </button>
+        </Sheet>
+      )}
 
       {reminderOpen && (
         <Sheet open onClose={() => setReminderOpen(false)} title={t('reminderAdd')}>

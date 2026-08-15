@@ -1,43 +1,50 @@
 /*
  * Design-System-Tokens.
  *
- * #DDC6B6 ist die Hauptfarbe der Anwendung. Sie trägt den Rahmen — Kopfzeile,
- * Fußnavigation, Schnelleingabe — und ist damit auf jedem Bildschirm präsent.
+ * #DDC6B6 ist die Hauptfarbe der Anwendung. Sie trägt den Hintergrundverlauf,
+ * die Marken-Flächen und den Rahmen und ist damit auf jedem Bildschirm präsent.
  *
- * Als Textfarbe oder Bedienelement-Füllung ist sie dagegen nicht verwendbar:
- * Auf Weiß erreicht sie 1,64:1, WCAG fordert 3:1 für Bedienelemente und 4,5:1
- * für Text. Deshalb die Trennung:
+ * Als Textfarbe oder Füllung eines Bedienelements ist sie dagegen nicht
+ * verwendbar: Auf Weiß erreicht sie 1,64:1, WCAG fordert 3:1 für Bedienelemente
+ * und 4,5:1 für Text. Daraus folgt die Rollentrennung:
  *
  *   --brand        Fläche. Darauf immer --brand-ink oder --brand-muted.
- *   --action       Bedienelemente auf hellem Grund (6,57:1 gegen Weiß).
+ *   --action       Bedienelemente (4,97:1 auf dem tiefsten Verlaufston).
  *   --accent       ausschließlich dekorativ, nie Text (2,57:1 gegen Weiß).
+ *   --brand-line   Kante — trägt die Abgrenzung, wo die Füllung es nicht kann.
  *
  * Alle Paare sind in scripts/check-contrast.mjs hinterlegt und werden bei
  * `npm run check:contrast` gegen diese Datei nachgerechnet.
  */
 
 :root {
-  /* Hauptfarbe — Flächen und Rahmen, niemals als Textfarbe auf Weiß */
+  /* Hauptfarbe — Flächen und Rahmen, niemals als Textfarbe */
   --brand: #ddc6b6;
   --brand-soft: #f0e5dd;
-  --brand-strong: #bc9c82;      /* sichtbare Kante auf --brand */
+  --brand-strong: #bc9c82;      /* sichtbare Kante der Marken-Flächen */
   --brand-ink: #262223;         /* Haupttext AUF --brand — 9,61:1 */
   --brand-muted: #54443a;       /* Sekundärtext AUF --brand — 5,66:1 */
-  --brand-line: #5e7178;        /* Kante von Bedienelementen AUF --brand — 3,12:1 */
+  --brand-line: #8a6b52;        /* Kante von Flächen auf warmem Grund */
 
-  /* Handlungsfarbe: aus #65ABC4 abgedunkelt auf ca. 5:1 gegen Weiß */
-  --action: #16657e;
-  --action-hover: #0f4c5e;
-  --action-soft: #e3f0f5;
-  --accent: #65abc4; /* dekorativ: Diagramme, Ränder, Flächen */
+  /*
+   * Hintergrund als Verlauf aus der Hauptfarbe. Der tiefste Ton --bg-to ist
+   * der Prüfmaßstab für jeden Text, der direkt darauf steht.
+   */
+  --bg: #f0d7bc;
+  --bg-from: #f7e3cc;
+  --bg-to: #e8cba9;
 
-  --bg: #d9e4e8;
-  --surface: #ffffff;
-  --surface-2: #f4f8f9;
+  --surface: #fcf5f0;           /* Karten und Blätter, warmes Creme */
+  --surface-2: #f5e9e0;
 
   --text: #262223;
   --text-secondary: #023441;
-  --text-muted: #4e5f65;   /* 5,15:1 auf --bg, 6,67:1 auf Weiß */
+  --text-muted: #655047;        /* 6,97:1 auf Karte, 4,85:1 auf --bg-to */
+
+  --action: #135a70;            /* 4,97:1 auf --bg-to, 7,71:1 für weißen Text */
+  --action-hover: #0f4c5e;
+  --action-soft: #e3f0f5;
+  --accent: #65abc4;            /* dekorativ: Diagramme, Linien */
 
   --warning: #e88c2b;
   --warning-ink: #6b3a00;
@@ -47,11 +54,12 @@
   --ok: #2f6b4f;
   --ok-soft: #e4f0ea;
 
-  --border: #c8d6db;
-  --border-strong: #6b8189;   /* 4,10:1 auf Weiß — WCAG 1.4.11 für Feldränder */
+  --border: #e4d3c4;
+  --border-strong: #8a6b52;
 
-  --radius-tile: 16px;
-  --radius-control: 12px;
+  --radius-tile: 20px;
+  --radius-card: 28px;
+  --radius-control: 14px;
   --radius-pill: 999px;
 
   --space-1: 4px;
@@ -63,34 +71,41 @@
 
   --tap: 48px;
 
-  --shadow-tile: 0 1px 2px rgba(2, 52, 65, 0.06), 0 4px 12px rgba(2, 52, 65, 0.05);
-  --shadow-sheet: 0 -8px 40px rgba(2, 52, 65, 0.18);
+  --shadow-tile: 0 1px 2px rgba(74, 47, 38, 0.05), 0 6px 18px rgba(74, 47, 38, 0.07);
+  --shadow-card: 0 2px 6px rgba(74, 47, 38, 0.07), 0 14px 34px rgba(74, 47, 38, 0.1);
+  --shadow-sheet: 0 -8px 40px rgba(74, 47, 38, 0.22);
 
   --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+  /* Systemserifen — keine Web-Font, damit keine externe Ressource nötig ist. */
+  --font-display: 'Iowan Old Style', 'Palatino Linotype', Palatino, 'Book Antiqua',
+    'Hoefler Text', Georgia, 'Times New Roman', serif;
   --fs-base: 17px;
 }
 
 /* Dunkles Thema: gleiche Rollen, andere Werte. */
 :root[data-theme='dark'] {
   --brand: #6a5749;
-  --brand-soft: #332c27;
+  --brand-soft: #3a2f28;
   --brand-strong: #8b7565;
-  --brand-ink: #f2ece7;         /* 5,84:1 auf --brand */
+  --brand-ink: #f2ece7;
   --brand-muted: #e3dad3;
-  --brand-line: #c9bdb2;
+  --brand-line: #a08a78;
+
+  --bg: #1c1613;
+  --bg-from: #241c17;
+  --bg-to: #16110e;
+
+  --surface: #2a211c;
+  --surface-2: #342a23;
+
+  --text: #f4eee9;
+  --text-secondary: #dbcec4;
+  --text-muted: #bcaa9c;
 
   --action: #7fc2da;
   --action-hover: #a5d5e6;
   --action-soft: #14313b;
   --accent: #65abc4;
-
-  --bg: #11181b;
-  --surface: #1b2427;
-  --surface-2: #222c30;
-
-  --text: #eee8e3;
-  --text-secondary: #b9cbd1;
-  --text-muted: #8fa3aa;
 
   --warning: #f0a758;
   --warning-ink: #f7dfc4;
@@ -100,21 +115,23 @@
   --ok: #7fc79f;
   --ok-soft: #163023;
 
-  --border: #2e3a3e;
-  --border-strong: #687c84;
+  --border: #3d3128;
+  --border-strong: #a08a78;
 
-  --shadow-tile: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-tile: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.5), 0 14px 34px rgba(0, 0, 0, 0.45);
   --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.6);
 }
 
 /*
- * Nachtmodus (PRD §4.2): ab 21 Uhr zusätzlich gedämpft und wärmer,
- * damit das Handy im dunklen Kinderzimmer nicht blendet.
+ * Nachtmodus: ab 21 Uhr zusätzlich gedämpft und wärmer, damit das Handy im
+ * dunklen Kinderzimmer nicht blendet.
  */
 :root[data-night='true'] {
-  --bg: #0d1214;
-  --surface: #161d20;
-  --text: #d8cec6;
+  --bg-from: #1a1411;
+  --bg-to: #100c0a;
+  --surface: #221b17;
+  --text: #e0d6cd;
   --action: #6ba9be;
 }
 

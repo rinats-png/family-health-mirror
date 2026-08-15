@@ -9,9 +9,9 @@ Messwerten und Ereignissen rund um die Gesundheit des eigenen Kindes.
 >
 > Verbindlich für jede Änderung: **[`REGULATORY.md`](REGULATORY.md)**
 
-| Heute | Verlauf | Messwerte | Impfungen |
+| Heute | Verlauf | Messwerte | Dunkel |
 |---|---|---|---|
-| ![Heute](docs/screenshot-heute.png) | ![Verlauf](docs/screenshot-verlauf.png) | ![Messwerte](docs/screenshot-messwerte.png) | ![Impfungen](docs/screenshot-impfungen.png) |
+| ![Heute](docs/screenshot-heute.png) | ![Verlauf](docs/screenshot-verlauf.png) | ![Messwerte](docs/screenshot-messwerte.png) | ![Dunkles Thema](docs/screenshot-dunkel.png) |
 
 ```bash
 cd app && npm install && npm run dev

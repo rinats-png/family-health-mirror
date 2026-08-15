@@ -62,22 +62,25 @@ const PAIRS = [
   ['Sekundärtext auf brand-soft', 'brand-muted', 'brand-soft', 4.5],
   // Trennlinien sind keine Bedienelemente; verlangt ist nur Wahrnehmbarkeit.
   ['Trennlinie auf der Hauptfarbe', 'brand-strong', 'brand', 1.5],
-  ['Kante von Bedienelementen auf der Hauptfarbe', 'brand-line', 'brand', 3],
-  ['Indikator des aktiven Tabs auf der Hauptfarbe', 'action-hover', 'brand', 3],
+  ['Kante einer Karte gegen ihre Fuellung', 'brand-line', 'surface', 3],
+  ['Kante einer Karte gegen den Verlauf', 'brand-line', 'bg-to', 3],
+  ['Kante eines Symbolkreises auf brand-soft', 'brand-line', 'brand-soft', 3],
+  ['Aktiver Tab auf gefuellter Pille', 'action', 'brand-soft', 4.5],
 
   // Text auf Flächen
   ['Haupttext auf Fläche', 'text', 'surface', 4.5],
-  ['Haupttext auf Hintergrund', 'text', 'bg', 4.5],
+  ['Haupttext auf dem tiefen Verlaufston', 'text', 'bg-to', 4.5],
   ['Sekundärtext auf Fläche', 'text-secondary', 'surface', 4.5],
   ['Gedämpfter Text auf Fläche', 'text-muted', 'surface', 4.5],
-  ['Gedämpfter Text auf Hintergrund', 'text-muted', 'bg', 4.5],
+  ['Gedaempfter Text auf dem hellen Verlaufston', 'text-muted', 'bg-from', 4.5],
+  ['Gedaempfter Text auf dem tiefen Verlaufston', 'text-muted', 'bg-to', 4.5],
   ['Gedämpfter Text auf Fläche 2', 'text-muted', 'surface-2', 4.5],
 
   // Bedienelemente
   ['Handlungsfarbe auf Fläche', 'action', 'surface', 4.5],
-  ['Handlungsfarbe auf Hintergrund', 'action', 'bg', 4.5],
+  ['Handlungsfarbe auf dem tiefen Verlaufston', 'action', 'bg-to', 4.5],
   ['Rand von Eingabefeldern auf Fläche', 'border-strong', 'surface', 3],
-  ['Rand von Eingabefeldern auf Hintergrund', 'border-strong', 'bg', 3],
+  ['Rand von Eingabefeldern auf dem Verlauf', 'border-strong', 'bg-to', 3],
 
   // Hinweisfarben — ausschließlich UI-Zustände, nie Gesundheitsinhalte
   ['Warnton auf weichem Warnhintergrund', 'warning-ink', 'warning-soft', 4.5],

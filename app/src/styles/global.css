@@ -18,7 +18,10 @@ body {
   font-size: var(--fs-base);
   line-height: 1.45;
   color: var(--text);
-  background: var(--bg);
+  /* Der Verlauf ist die Hauptfarbe: heller Ton oben, tieferer unten. */
+  background: var(--bg-to);
+  background-image: linear-gradient(180deg, var(--bg-from) 0%, var(--bg-to) 100%);
+  background-attachment: fixed;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }
@@ -55,12 +58,12 @@ input, select, textarea {
   min-height: 100%;
   max-width: 560px;
   margin: 0 auto;
-  background: var(--bg);
+  background: transparent;
 }
 
 .app__main {
   flex: 1;
-  padding: 0 var(--space-4) calc(var(--tap) + 56px);
+  padding: 0 var(--space-4) calc(var(--tap) + 76px);
 }
 
 .screen-head {
@@ -68,9 +71,11 @@ input, select, textarea {
 }
 
 .screen-title {
-  font-size: 26px;
-  font-weight: 700;
+  font-family: var(--font-display);
+  font-size: 34px;
+  font-weight: 600;
   letter-spacing: -0.01em;
+  line-height: 1.1;
 }
 
 .screen-sub {
@@ -101,10 +106,15 @@ input, select, textarea {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
-  background: var(--brand);
-  color: var(--brand-ink);
-  border-bottom: 1px solid var(--brand-strong);
+  margin: var(--space-3) var(--space-3) 0;
+  padding: var(--space-2);
+  background: var(--surface);
+  color: var(--text);
+  /* Die Füllung der Pille erreicht gegen den Verlauf nur etwa 1,05:1 —
+     die Abgrenzung muss deshalb die Kante tragen. */
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-tile);
 }
 
 .child-switch {
@@ -115,7 +125,7 @@ input, select, textarea {
   padding: 4px 12px 4px 4px;
   border: 1px solid var(--brand-line);
   border-radius: var(--radius-pill);
-  background: var(--surface);
+  background: var(--brand-soft);
 }
 
 .avatar {
@@ -139,7 +149,7 @@ input, select, textarea {
   place-items: center;
   border: 1px solid var(--brand-line);
   border-radius: var(--radius-pill);
-  background: var(--surface);
+  background: var(--brand-soft);
   font-size: 18px;
 }
 
@@ -187,23 +197,7 @@ input, select, textarea {
   margin-top: 2px;
 }
 
-/* ---------- Quick-Chips ---------- */
-
-.quickbar {
-  background: var(--brand);
-  border: 1px solid var(--brand-strong);
-  border-radius: var(--radius-tile);
-  padding: var(--space-4);
-  color: var(--brand-ink);
-}
-
-/* Auf der Marke gilt die Marken-Textrolle, nicht die allgemeine. */
-.quickbar .tile__label { color: var(--brand-muted); }
-.quickbar .muted { color: var(--brand-muted); }
-
-/* Die Füllung einer Kachel erreicht gegen die Hauptfarbe nur 1,64:1. Die
-   Abgrenzung muss deshalb die Kante tragen — --brand-line liegt bei 3,12:1. */
-.quickbar .chip { border-color: var(--brand-line); }
+/* ---------- Kategorie-Chips (Blatt: alle Kategorien) ---------- */
 
 .chips {
   display: grid;
@@ -370,9 +364,12 @@ input, select, textarea {
   grid-template-columns: repeat(5, 1fr);
   max-width: 560px;
   margin: 0 auto;
-  background: var(--brand);
-  border-top: 1px solid var(--brand-strong);
-  padding-bottom: env(safe-area-inset-bottom);
+  margin: 0 var(--space-3) calc(var(--space-3) + env(safe-area-inset-bottom));
+  padding: var(--space-1);
+  background: var(--surface);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-pill);
+  box-shadow: var(--shadow-card);
 }
 
 .tabbar__item {
@@ -387,23 +384,15 @@ input, select, textarea {
   border: none;
   font-size: 10.5px;
   font-weight: 600;
-  color: var(--brand-muted);
+  color: var(--text-muted);
 }
 
+/* Aktiv: gefüllte Pille plus Schriftschnitt plus Farbe — nie Farbe allein. */
 .tabbar__item[aria-current='true'] {
-  color: var(--brand-ink);
+  color: var(--action);
   font-weight: 800;
-}
-
-.tabbar__item[aria-current='true']::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 22%;
-  right: 22%;
-  height: 3px;
-  border-radius: 0 0 3px 3px;
-  background: var(--action-hover);
+  background: var(--brand-soft);
+  border-radius: var(--radius-pill);
 }
 .tabbar__icon { font-size: 19px; line-height: 1; }
 
@@ -620,4 +609,141 @@ input, select, textarea {
 
 @media (prefers-reduced-motion: reduce) {
   * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Story-Karten (Schnelleintrag) ---------- */
+
+/*
+ * Waagerecht wischbare Karten mit Einrastpunkten. Bewusst nicht das
+ * effizienteste Muster — dafür eines, das man gern öffnet. Alle Kategorien
+ * bleiben erreichbar: die Reihenfolge richtet sich nach der letzten Nutzung,
+ * und „Alle Kategorien" öffnet zusätzlich das vollständige Raster.
+ */
+.storycards {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 74%;
+  gap: var(--space-3);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  padding: var(--space-2) var(--space-4) var(--space-3);
+  margin: 0 calc(-1 * var(--space-4));
+}
+
+.storycards::-webkit-scrollbar { display: none; }
+
+.storycard {
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--space-3);
+  min-height: 286px;
+  padding: var(--space-5) var(--space-4) var(--space-3);
+  background: var(--surface);
+  /* Gegen den Verlauf trägt die Kante die Abgrenzung, nicht die Füllung. */
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+}
+
+.storycard__badge {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 32px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  flex: none;
+}
+
+.storycard__title {
+  font-family: var(--font-display);
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.storycard__meta {
+  font-size: 14px;
+  color: var(--text-muted);
+  min-height: 2.9em;
+  margin-bottom: var(--space-1);
+}
+
+/* Die Zeichnung sitzt am Fuß, der Rest rückt zusammen. */
+.storycard > .btn { margin-bottom: var(--space-2); }
+
+.storycard__art {
+  margin-top: auto;
+  width: 100%;
+  height: 54px;
+  color: var(--brand-strong);
+  opacity: 0.85;
+}
+
+.storycard--more { justify-content: center; }
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: var(--space-1);
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand-strong);
+  opacity: 0.45;
+  padding: 0;
+  border: none;
+}
+
+.dot[aria-current='true'] {
+  opacity: 1;
+  background: var(--action);
+  width: 20px;
+  border-radius: var(--radius-pill);
+}
+
+/* ---------- Rundes Symbol in Listenzeilen ---------- */
+
+.list-item__badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 19px;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-line);
+  flex: none;
+}
+
+/* Die Liste als zusammenhängende Karte, wie im Entwurf. */
+.list--grouped {
+  background: var(--surface);
+  border: 1px solid var(--brand-line);
+  border-radius: var(--radius-tile);
+  overflow: hidden;
+  gap: 0;
+  box-shadow: var(--shadow-tile);
+}
+
+.list--grouped .list-item {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+}
+
+.list--grouped .list-item + .list-item {
+  border-top: 1px solid var(--border);
 }

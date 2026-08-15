@@ -86,8 +86,8 @@ nur im hellen Thema existiert, ist ein Bug.
 
 ### 1.2 Die Farbhierarchie
 
-`#DDC6B6` ist die **Hauptfarbe der Anwendung**. Sie trägt den Rahmen — Kopfzeile,
-Fußnavigation, Schnelleingabe — und ist damit auf jedem Bildschirm präsent.
+`#DDC6B6` ist die **Hauptfarbe der Anwendung**. Sie trägt den Hintergrundverlauf
+jedes Bildschirms und die Marken-Flächen und ist damit durchgehend präsent.
 
 Als Textfarbe oder Füllung eines Bedienelements ist sie dagegen nicht verwendbar:
 Auf Weiß erreicht sie **1,64:1**, WCAG fordert 3:1 für Bedienelemente und 4,5:1 für
@@ -95,21 +95,28 @@ Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine Rollentrenn
 
 | Rolle | Token | Wert | Verwendung |
 |---|---|---|---|
-| Hauptfarbe, Flächen | `--brand` | `#DDC6B6` | Kopfzeile, Fußnavigation, Schnelleingabe, Ruhezonen |
+| Hauptfarbe, Flächen | `--brand` | `#DDC6B6` | Marken-Flächen, Symbolkreise, Herkunft des Verlaufs |
+| Verlauf | `--bg-from` / `--bg-to` | `#F7E3CC` → `#E8CBA9` | Hintergrund jedes Bildschirms |
 | Text darauf | `--brand-ink` | `#262223` | 9,61:1 auf `--brand` |
 | Sekundärtext darauf | `--brand-muted` | `#54443A` | 5,66:1 auf `--brand` |
-| Kante darauf | `--brand-line` | `#5E7178` | 3,12:1 — Bedienelemente auf `--brand` abgrenzen |
-| Trennlinie darauf | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
-| Handlung | `--action` | `#16657E` | Buttons, Auswahlzustände, Fokusring |
-| Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,57:1) |
+| Kante von Flächen | `--brand-line` | `#8A6B52` | 4,52:1 gegen die Karte, 3,15:1 gegen den Verlauf |
+| Trennlinie | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
+| Karte, Blatt | `--surface` | `#FCF5F0` | warmes Creme statt Weiß |
+| Handlung | `--action` | `#135A70` | Buttons, Auswahlzustände, Fokusring |
+| Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,38:1) |
 
-**Warum die Kante auf der Marke eigene Aufmerksamkeit braucht:** Eine weiße Kachel
-erreicht gegen `#DDC6B6` nur 1,64:1. Die Füllung allein grenzt sie also nicht
-erkennbar ab — das muss die Kante leisten, deshalb `--brand-line` mit 3,12:1.
+**Warum die Kante eigene Aufmerksamkeit braucht — die wichtigste Lehre aus dem
+Story-Entwurf:** Eine cremefarbene Karte erreicht gegen den warmen Verlauf nur
+etwa **1,05:1**. Zwischen Karte und Hintergrund liegt praktisch kein
+Helligkeitsunterschied; im Entwurf trägt allein der weiche Schatten die
+Abgrenzung, und der verschwindet bei Sonnenlicht. Deshalb bekommt jede Fläche,
+die auf dem Verlauf liegt — Karte, Kopfzeilen-Pille, Fußnavigation,
+Symbolkreis — eine Kante in `--brand-line` mit mindestens 3:1 gegen **beide**
+Seiten.
 
-**Aktiver Zustand in der Fußnavigation** unterscheidet sich über Schriftschnitt
-(800 statt 600), Textfarbe (`--brand-ink` statt `--brand-muted`) **und** einen
-Indikatorbalken in `--action-hover` — nie über Farbe allein.
+**Aktiver Zustand in der Fußnavigation** unterscheidet sich über eine gefüllte
+Pille (`--brand-soft`), den Schriftschnitt (800 statt 600) **und** die Farbe —
+nie über Farbe allein.
 
 Kommt aus Figma ein Primärbutton in `#DDC6B6`, wird er auf `--action` gemappt und
 die Abweichung im PR vermerkt.
@@ -129,22 +136,35 @@ Verstoß mit Exit-Code 1 ab und gehört in die CI.
 ### 1.3 Nicht-Farb-Tokens
 
 ```css
---radius-tile: 16px;  --radius-control: 12px;  --radius-pill: 999px;
+--bg-from / --bg-to;                  /* Hintergrundverlauf aus der Hauptfarbe */
+--radius-card: 28px;  --radius-tile: 20px;  --radius-control: 14px;  --radius-pill: 999px;
 --space-1: 4px … --space-6: 32px;     /* 4-pt-Basis, 8-pt-Raster */
 --tap: 48px;                          /* Mindest-Tap-Ziel, nicht unterschreiten */
---font: -apple-system, …;  --fs-base: 17px;
---shadow-tile;  --shadow-sheet;
+--font: -apple-system, …;             /* Fließtext */
+--font-display: 'Iowan Old Style', Palatino, Georgia, serif;   /* Titel */
+--fs-base: 17px;
+--shadow-tile;  --shadow-card;  --shadow-sheet;
 ```
 
-### 1.4 Bekannte Lücke: Typografie
+**Der Hintergrund ist ein Verlauf**, kein Flächenton: `--bg-from` oben,
+`--bg-to` unten, beide aus der Hauptfarbe abgeleitet. Prüfmaßstab für jeden
+Text, der direkt darauf steht, ist immer der **tiefere** Ton `--bg-to`.
 
-**Es gibt keine Schriftgrößen-Token.** Größen stehen als Literale in
+**Es gibt zwei Schriftfamilien.** `--font-display` ist eine Systemserife und
+trägt Bildschirmtitel und Kartentitel; alles andere läuft in `--font`. Keine
+Web-Font — jede externe Ressource ist wegen der Content-Security-Policy und des
+Local-first-Versprechens ausgeschlossen (siehe 4.2).
+
+### 1.4 Bekannte Lücke: Schriftgrößen
+
+**Es gibt Schriftfamilien-Token, aber keine Schriftgrößen-Token.** Größen stehen als Literale in
 [`global.css`](app/src/styles/global.css) und vereinzelt inline. Faktisch verwendete
 Skala:
 
 | Verwendung | Größe | Klasse |
 |---|---|---|
-| Bildschirmtitel | 26px/700 | `.screen-title` |
+| Bildschirmtitel | 34px/600, Serife | `.screen-title` |
+| Kartentitel | 28px/600, Serife | `.storycard__title` |
 | Kachelwert | 22px/700 | `.tile__value` |
 | Blatt-Überschrift | 19px/600 | inline in `Sheet` |
 | Fließtext | 17px | `--fs-base` |
@@ -206,9 +226,12 @@ wenn sie eigenen Zustand oder eigene Interaktionslogik hat (wie `Sheet`).
 
 | Figma-Muster | Klasse | Datei |
 |---|---|---|
+| Story-Karte, wischbar | `.storycards` > `.storycard` > `.storycard__badge/__title/__meta/__art` | global.css |
+| Seitenanzeige der Karten | `.dots` > `.dot[aria-current]` | global.css |
 | Kachel | `.tile`, `.tile--wide`, `.tile--brand` + `.tile__label/__value/__meta` | global.css |
 | Kachelraster | `.tiles` (2 Spalten) | global.css |
-| Schnelleingabe-Kachel | `.quickbar` > `.chips` > `.chip` > `.chip__icon` | global.css |
+| Kategorie-Chips | `.chips` > `.chip` > `.chip__icon` | global.css |
+| Liste als zusammenhängende Karte | `.list--grouped` + `.list-item__badge` | global.css |
 | Button | `.btn` + `--primary/--ghost/--danger/--block/--sm` | global.css |
 | Auswahlgruppe / Chips | `.seg` > `.seg__item[aria-pressed]` | global.css |
 | Listenzeile | `.list` > `.list-item` > `.list-item__main/__title/__meta/__chevron` | global.css |
@@ -432,7 +455,8 @@ wäre eine Produktentscheidung, keine Design-Übernahme.
 | Tap-Ziel ≥ 48 dp | `--tap`, gesetzt auf `.btn`, `.input`, `.chip` (76px) |
 | Kontrast WCAG AA | maschinell geprüft über `npm run check:contrast`, beide Themen |
 | Fokus sichtbar | globaler `:focus-visible` mit 3px `--action` |
-| Farbe nie allein | Kalendertage tragen Punkte **und** sind antippbar; Auswahl über `aria-pressed` |
+| Farbe nie allein | Kalendertage tragen Punkte **und** sind antippbar; der aktive Tab hat Füllung, Schriftschnitt und Farbe |
+| Gleichnamige Bedienelemente | Jeder Karten-Button trägt ein `aria-label` mit der Kategorie — sonst heißen alle elf „+ Eintragen" |
 | Dynamic Type | relative Größen, kein `overflow: hidden` an Textcontainern |
 | Bewegung | `prefers-reduced-motion` und `data-night` schalten Animationen ab |
 
