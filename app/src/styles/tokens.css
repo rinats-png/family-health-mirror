@@ -60,7 +60,11 @@
   --surface-glass: rgba(221, 198, 182, 0.72);
   --chrome-glass: rgba(221, 198, 182, 0.88);
   --glass-blur: 18px;
-  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+  /* Der Glanz macht das Glas sichtbar, nicht die Füllung: heller Innenrand
+     oben, ein Hauch Schatten unten. Beides liegt auf der Kante, nicht auf der
+     Fläche — der Ton der Fläche bleibt damit exakt die Hauptfarbe. */
+  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -1px 0 rgba(74, 47, 38, 0.12);
 
   --text: #262223;
   --text-secondary: #023441;
@@ -125,7 +129,8 @@
 
   --surface-glass: rgba(50, 39, 33, 0.76);
   --chrome-glass: rgba(50, 39, 33, 0.92);
-  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+  --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.13),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.35);
 
   --text: #f4eee9;
   --text-secondary: #dbcec4;

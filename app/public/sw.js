@@ -7,7 +7,7 @@
  * IndexedDB und werden hier nie angefasst.
  */
 
-const CACHE = 'gesundheitstagebuch-v1';
+const CACHE = 'gesundheitstagebuch-v2';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg'];
 
 self.addEventListener('install', (event) => {
