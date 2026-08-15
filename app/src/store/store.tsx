@@ -8,7 +8,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { BUILT_IN_CATEGORIES } from '../data/categories';
+import { BUILT_IN_CATEGORIES, CHILD_COLORS } from '../data/categories';
 import { DEFAULT_REFERENCE_ID } from '../data/growthReferences';
 import { deriveKey, randomSalt } from '../db/crypto';
 import {
@@ -35,8 +35,6 @@ import type {
   SyncMeta,
   VaccinationRecord,
 } from '../domain/types';
-
-export const CHILD_COLORS = ['#65ABC4', '#DDC6B6', '#8FBF9F', '#B49AC7', '#C7B37E', '#9AA7C7'];
 
 function uid(prefix: string): string {
   const rnd =

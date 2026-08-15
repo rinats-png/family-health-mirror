@@ -18,6 +18,9 @@ export interface BuiltInCategory {
   medication?: boolean;
 }
 
+/** Farben für die Avatare der Kinderprofile. Ohne Bedeutung, nur zur Unterscheidung. */
+export const CHILD_COLORS = ['#65ABC4', '#DDC6B6', '#8FBF9F', '#B49AC7', '#C7B37E', '#9AA7C7'];
+
 export const CATEGORY_PALETTE = [
   '#65ABC4',
   '#DDC6B6',
