@@ -116,8 +116,16 @@ Rollentrennung:
 | Trennlinie | `--brand-strong` | `#5FB5AB` | `#7B6A75` | Kante der Marken-Flächen |
 | Karte, Blatt | `--surface` | `#7CC7BE` | `#221C20` | Prüfmaßstab = tiefster Grundton; die Fläche selbst ist Milchglas |
 | Erhabene Fläche | `--surface-2` | `#E2F6F2` | `#4A3D45` | Symbolkreise, aktive Pille, Eingabefelder — deckend |
-| Handlung | `--action` | `#16463F` | `#99E1D9` | Buttons, Auswahlzustände, Fokusring |
+| Handlung | `--action` | `#16463F` | `#99E1D9` | Auswahlzustände, Fokusring, aktiver Tab |
+| Gegenfläche | `--ink` / `--ink-on` | `#32292F` / `#F4EEF2` | `#99E1D9` / `#26202A` | Primärbutton, Hinweisstreifen, Pro-Kennzeichnung |
 | Akzent | `--accent` | `#52A89E` | `#52A89E` | Diagramme, Ränder — **nie** als Textfarbe |
+
+**Wine Ash ist auch im hellen Thema eine Fläche, nicht nur Schrift.** Der
+Primärbutton, der Hinweisstreifen und die Pro-Kennzeichnung tragen `--ink` —
+eine dunkle Scheibe auf hellem Grund, wie in der Vorlage. Die Regel dahinter
+ist in einem Satz zu merken: **`--ink` ist immer die Farbe, die der Grund
+nicht hat.** Deshalb ist sie im dunklen Thema Turquoise; ein Wine-Ash-Button
+auf Wine-Ash-Grund verschwände.
 
 **Warum die Handlungsfarbe im hellen Thema nicht Wine Ash ist.** Naheliegend
 wäre, das Gegenstück auch für Buttons zu nehmen. `--action` ist aber nicht nur

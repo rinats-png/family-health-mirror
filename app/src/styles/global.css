@@ -263,14 +263,15 @@ input, select, textarea {
   color: var(--text);
 }
 
+/* Der Primärbutton trägt die zweite Farbe: Wine Ash im hellen Thema,
+   Turquoise im dunklen. Siehe --ink in tokens.css. */
 .btn--primary {
-  background: var(--action);
-  color: #fff;
-  border-color: var(--action);
+  background: var(--ink);
+  color: var(--ink-on);
+  border-color: var(--ink);
 }
-:root[data-theme='dark'] .btn--primary { color: #26202a; }
 
-.btn--primary:hover { background: var(--action-hover); border-color: var(--action-hover); }
+.btn--primary:hover { background: var(--ink-hover); border-color: var(--ink-hover); }
 
 .btn--ghost { background: transparent; border-color: var(--border-strong); }
 .btn--danger { background: var(--critical-soft); border-color: var(--critical); color: var(--critical); }
@@ -619,8 +620,8 @@ input, select, textarea {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-  background: var(--text-secondary);
-  color: #fff;
+  background: var(--ink);
+  color: var(--ink-on);
   border-radius: var(--radius-pill);
   padding: 10px 12px 10px 16px;
   font-size: 14px;
@@ -643,8 +644,8 @@ input, select, textarea {
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.06em;
-  background: var(--brand);
-  color: var(--brand-ink);
+  background: var(--ink);
+  color: var(--ink-on);
   border-radius: var(--radius-pill);
   padding: 2px 7px;
   vertical-align: middle;

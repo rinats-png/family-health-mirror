@@ -4,7 +4,7 @@
  *
  * Die Werte werden aus src/styles/tokens.css gelesen, nicht hier dupliziert —
  * ein geänderter Token schlägt also sofort hier durch. Das ist der Grund für
- * dieses Skript: Die Hauptfarbe #DDC6B6 ist auf hellem Grund als Text- und
+ * dieses Skript: Die Hauptfarbe #99E1D9 ist auf hellem Grund als Text- und
  * Bedienelementfarbe unbrauchbar, und diese Grenze soll nicht davon abhängen,
  * dass jemand die Regel im Kopf hat.
  *
@@ -82,6 +82,9 @@ const PAIRS = [
   ['Gedaempfter Text auf der erhabenen Flaeche', 'text-muted', 'surface-2', 4.5],
 
   // Bedienelemente
+  ['Text auf der Wine-Ash-Fläche', 'ink-on', 'ink', 4.5],
+  ['Wine-Ash-Fläche gegen den hellen Grund', 'ink', 'bg-to', 3],
+  ['Wine-Ash-Fläche gegen den tiefen Grund', 'ink', 'bg-from', 3],
   ['Handlungsfarbe auf Fläche', 'action', 'surface', 4.5],
   ['Handlungsfarbe auf dem Hintergrund', 'action', 'bg-to', 4.5],
   ['Rand von Eingabefeldern auf Fläche', 'border-strong', 'surface', 3],

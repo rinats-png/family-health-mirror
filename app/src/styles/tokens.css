@@ -85,6 +85,21 @@
   --action-soft: #e2f6f2;
   --accent: #52a89e;            /* dekorativ: Diagramme, Linien */
 
+  /*
+   * Wine Ash als FLÄCHE, nicht nur als Schrift.
+   *
+   * Damit steht die zweite Farbe auf jedem Bildschirm sichtbar da — der
+   * Primärbutton, der Hinweisstreifen, die Pro-Kennzeichnung. Es ist die
+   * Paarung der Vorlage: eine dunkle Scheibe auf hellem Grund.
+   *
+   * Im dunklen Thema ist --ink Turquoise. Die Regel dahinter: --ink ist immer
+   * die Farbe, die der Grund NICHT hat. Ein Wine-Ash-Button auf Wine-Ash-Grund
+   * verschwände.
+   */
+  --ink: #32292f;               /* Wine Ash */
+  --ink-hover: #241d22;
+  --ink-on: #f4eef2;            /* 14,6:1 auf --ink */
+
   --warning: #e88c2b;
   --warning-ink: #6b3a00;
   --warning-soft: #fdf0e0;
@@ -156,6 +171,10 @@
   --action-hover: #b9ece6;
   --action-soft: #4a3d45;
   --accent: #52a89e;
+
+  --ink: #99e1d9;               /* Turquoise — die Farbe, die der Grund nicht hat */
+  --ink-hover: #b9ece6;
+  --ink-on: #26202a;
 
   --warning: #f0a758;
   --warning-ink: #f7dfc4;
