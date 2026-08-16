@@ -105,23 +105,31 @@ Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine Rollentrenn
 
 | Rolle | Token | Wert | Verwendung |
 |---|---|---|---|
-| Hauptfarbe | `--brand` | `#DDC6B6` | Hintergrund, Karten, Marken-Flächen — ein Ton für alles |
-| Hintergrund | `--bg-from` / `--bg-to` | `#DDC6B6` | Hintergrund jedes Bildschirms, flächig |
+| Hauptfarbe | `--brand` | `#DDC6B6` | Marken-Flächen, Herkunft des Verlaufs |
+| Grund | `--bg-from` / `--bg-to` | `#C7A98F` → `#F2E6DC` | Verlauf: tief oben, hell unten |
 | Text darauf | `--brand-ink` | `#262223` | 9,61:1 auf `--brand` |
 | Sekundärtext darauf | `--brand-muted` | `#54443A` | 5,66:1 auf `--brand` |
-| Kante von Flächen | `--brand-line` | `#6B5039` | 4,53:1 — trägt die Abgrenzung allein |
+| Kante von Flächen | `--brand-line` | `#6B5039` | 3,35:1 zur Scheibe, 6,05:1 zum tiefen Grund |
 | Trennlinie | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
-| Karte, Blatt | `--surface` | `#DDC6B6` | Prüfmaßstab; die Fläche selbst ist Milchglas |
-| Erhabene Fläche | `--surface-2` | `#EDE0D6` | Symbolkreise, aktive Pille, Eingabefelder — deckend, heller als die Scheibe |
+| Karte, Blatt | `--surface` | `#C7A98F` | Prüfmaßstab = tiefster Grundton; die Fläche selbst ist Milchglas |
+| Erhabene Fläche | `--surface-2` | `#F2E7DE` | Symbolkreise, aktive Pille, Eingabefelder — deckend, heller als die Scheibe |
 | Handlung | `--action` | `#0D4353` | Buttons, Auswahlzustände, Fokusring |
 | Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,38:1) |
 
-**Warum die Kante die gesamte Abgrenzung trägt:** Karte und Hintergrund tragen
-denselben Ton — der Helligkeitsunterschied ist exakt null. Zwei Versuche mit
-einem feinen Tonschritt (Hauptfarbe −15 %, dann −5 %) sind daran gescheitert,
-dass jede abgedunkelte Fläche als Fleck auf dem Bildschirm gelesen wird statt
-als Karte. Die Trennung leistet deshalb ausschließlich die Kante in
-`--brand-line`, mit **4,53:1** gegen beide Seiten.
+**Der Grund läuft dunkler als die Flächen — nicht umgekehrt.** Das ist die
+Lehre aus drei gescheiterten Anläufen. Zuerst lief der Verlauf *heller* als die
+Karten; jede Karte wurde dadurch als dunkler Fleck gelesen. Dann wurden die
+Karten abgedunkelt (−15 %, dann −5 %) — derselbe Fleck, nur schwächer. Dann
+trugen Grund und Karte denselben Ton — flach, und das Milchglas hatte nichts,
+was durchscheinen konnte.
+
+Jetzt ist der Grund ein Verlauf von `#C7A98F` oben nach `#F2E6DC` unten, und
+die Flächen sind ein heller Schleier darüber. Damit liegt jede Scheibe an
+jeder Stelle über ihrem Grund, und man sieht sie als Glas statt als Fläche.
+
+Die Kante in `--brand-line` bleibt trotzdem Pflicht: Am hellen Ende des
+Verlaufs ist der Unterschied Scheibe/Grund klein, und ein Schatten allein
+verschwindet bei Sonnenlicht.
 
 Daraus folgt eine harte Regel: **Eine Fläche ohne Kante existiert nicht.** Jede
 Karte, Kopfzeilen-Pille, Fußnavigation und jeder Symbolkreis bekommt
@@ -129,7 +137,7 @@ Karte, Kopfzeilen-Pille, Fußnavigation und jeder Symbolkreis bekommt
 verschwindet bei Sonnenlicht.
 
 Bedienelemente sind davon ausgenommen: Eingabefelder, Chips, Kalendertage und
-die aktive Tab-Pille liegen auf `--surface-2` (`#EDE0D6`) und heben sich damit
+die aktive Tab-Pille liegen auf `--surface-2` (`#F2E7DE`) und heben sich damit
 zusätzlich zur Kante ab. Sie sind antippbar, Flächen nicht.
 
 **Aktiver Zustand in der Fußnavigation** unterscheidet sich über eine gefüllte
@@ -227,12 +235,11 @@ Verstoß mit Exit-Code 1 ab und gehört in die CI.
 --shadow-tile;  --shadow-card;  --shadow-sheet;
 ```
 
-**Der Hintergrund ist ein Flächenton**, kein Verlauf: `--bg-from` und `--bg-to`
-stehen beide auf `#DDC6B6`. Die Verlaufs-Rolle bleibt in den Token und in
-`global.css` erhalten, damit ein Verlauf später an einer Stelle wieder
-eingeführt werden kann — sie ist derzeit nur nicht besetzt. Ein Verlauf, der
-heller läuft als die Hauptfarbe, lässt jede Fläche in der Hauptfarbe dunkler
-erscheinen; genau daran ist der erste Entwurf gescheitert.
+**Der Hintergrund ist ein Verlauf aus der Hauptfarbe:** `--bg-from` `#C7A98F`
+oben, `--bg-to` `#F2E6DC` unten. Prüfmaßstab für jeden Text, der direkt darauf
+steht, ist immer der **tiefere** Ton `--bg-from`. Die Richtung ist nicht
+beliebig — ein Verlauf, der heller läuft als die Flächen, macht jede Fläche zum
+Fleck.
 
 **Es gibt zwei Schriftfamilien.** `--font-display` ist eine Systemserife und
 trägt Bildschirmtitel und Kartentitel; alles andere läuft in `--font`. Keine

@@ -18,8 +18,10 @@ body {
   font-size: var(--fs-base);
   line-height: 1.45;
   color: var(--text);
-  /* Der Verlauf ist die Hauptfarbe: heller Ton oben, tieferer unten. */
-  background: var(--bg-to);
+  /* Verlauf aus der Hauptfarbe: tiefer Ton oben, nach unten heller. Der
+     Grund muss dunkler laufen als die Flächen — sonst wirkt jede Karte als
+     Fleck statt als Scheibe. */
+  background: var(--bg-from);
   background-image: linear-gradient(180deg, var(--bg-from) 0%, var(--bg-to) 100%);
   background-attachment: fixed;
   -webkit-font-smoothing: antialiased;

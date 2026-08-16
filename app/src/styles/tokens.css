@@ -9,7 +9,7 @@
  * und 4,5:1 für Text. Daraus folgt die Rollentrennung:
  *
  *   --brand        Fläche. Darauf immer --brand-ink oder --brand-muted.
- *   --action       Bedienelemente (4,97:1 auf dem tiefsten Verlaufston).
+ *   --action       Bedienelemente (4,88:1 auf dem tiefsten Grundton).
  *   --accent       ausschließlich dekorativ, nie Text (2,57:1 gegen Weiß).
  *   --brand-line   Kante — trägt die Abgrenzung, wo die Füllung es nicht kann.
  *
@@ -20,44 +20,48 @@
 :root {
   /* Hauptfarbe — Flächen und Rahmen, niemals als Textfarbe */
   --brand: #ddc6b6;
-  --brand-soft: #ede0d6;        /* erhabene Fläche AUF einer Karte */
+  --brand-soft: #f2e7de;        /* erhabene Fläche AUF einer Karte */
   --brand-strong: #bc9c82;      /* Trennlinien */
   --brand-ink: #262223;         /* Haupttext AUF --brand — 9,61:1 */
   --brand-muted: #54443a;       /* Sekundärtext AUF --brand — 5,66:1 */
-  --brand-line: #6b5039;        /* Kante: 4,53:1 — zur Karte wie zum Hintergrund */
+  --brand-line: #6b5039;        /* Kante: 3,35:1 zur Scheibe, 6,05:1 zum tiefen Grund */
 
   /*
-   * Hintergrund: die Hauptfarbe, flächig. Der frühere Verlauf lag heller als
-   * #DDC6B6 — dadurch sass jede Fläche in der Hauptfarbe sichtbar dunkler als
-   * ihr Umfeld, egal wie fein der Tonschritt gewählt war. Deshalb tragen
-   * Hintergrund und Fläche jetzt denselben Wert.
+   * Der Grund ist ein Verlauf aus der Hauptfarbe: oben der tiefe Ton, nach
+   * unten heller auslaufend.
    *
-   * Die Verlaufs-Token bleiben als Rollen bestehen (global.css setzt weiterhin
-   * einen linear-gradient), stehen aber auf demselben Ton. Ein Verlauf lässt
-   * sich damit an einer Stelle wieder einführen, ohne die Struktur zu ändern.
+   * Der frühere Versuch mit einem Verlauf ist daran gescheitert, dass er
+   * HELLER lief als die Flächen — jede Karte wirkte dadurch als dunkler Fleck.
+   * Jetzt ist es umgekehrt: Die Flächen sind ein heller Schleier über dem
+   * Grund und liegen damit immer über ihm, egal an welcher Stelle. Erst
+   * dadurch ist das Milchglas überhaupt als Glas zu erkennen — vorher lag es
+   * auf einem Ton, der ihm exakt entsprach, und es gab nichts durchscheinen
+   * zu lassen.
+   *
+   * Der tiefste Ton --bg-from ist der Prüfmaßstab für jeden Text, der direkt
+   * auf dem Grund steht.
    */
-  --bg: #ddc6b6;
-  --bg-from: #ddc6b6;
-  --bg-to: #ddc6b6;
+  --bg: #d9bfa8;
+  --bg-from: #c7a98f;
+  --bg-to: #f2e6dc;
 
   /*
    * Milchglas.
    *
-   * Die Flächen tragen keine eigene Farbe mehr, sondern einen hellen Schleier
-   * über dem, was hinter ihnen liegt, plus Unschärfe. Über dem Hintergrund
-   * ergibt das #E2D0C3 — eine Spur heller als die Hauptfarbe, milchig, ohne
-   * eigenen Farbton.
+   * Die Flächen tragen keine eigene Farbe, sondern einen hellen Schleier über
+   * dem, was hinter ihnen liegt, plus Unschärfe. Über dem Verlauf ergibt das
+   * #D1B8A4 am tiefen Ende bis #F4E9E1 am hellen — immer heller als der Grund
+   * darunter, und genau daran erkennt man die Scheibe.
    *
-   * --surface bleibt der PRÜFMASSSTAB und steht deshalb weiter auf der
-   * Hauptfarbe: Das ist der dunkelste Wert, den eine Fläche annehmen kann
-   * (Schleier weggedacht). Jeder Text, der gegen diesen Wert besteht, besteht
-   * erst recht gegen das hellere Komposit.
+   * --surface ist der PRÜFMASSSTAB und steht auf dem TIEFSTEN Grundton. Das
+   * ist der dunkelste Wert, den eine Scheibe annehmen kann — den Schleier
+   * weggedacht. Wer gegen diesen Wert besteht, besteht überall.
    *
    * Kopfzeile und Fußnavigation nehmen einen dichteren Schleier, weil Inhalt
    * dahinter durchscrollt.
    */
-  --surface: #ddc6b6;
-  --surface-2: #ede0d6;
+  --surface: #c7a98f;
+  --surface-2: #f2e7de;
 
   --surface-glass: rgba(255, 255, 255, 0.18);
   /*
@@ -81,11 +85,11 @@
 
   --text: #262223;
   --text-secondary: #023441;
-  --text-muted: #483630;        /* 6,47:1 auf der Fläche wie auf dem Hintergrund */
+  --text-muted: #483630;        /* 5,15:1 auf dem tiefen Grund, 9,28:1 auf dem hellen */
 
-  --action: #0d4353;            /* 6,14:1 auf der Fläche, 10,80:1 für weißen Text */
+  --action: #0d4353;            /* 4,88:1 auf dem tiefen Grund, 10,80:1 für weißen Text */
   --action-hover: #0a3542;
-  --action-soft: #ede0d6;
+  --action-soft: #f2e7de;
   --accent: #65abc4;            /* dekorativ: Diagramme, Linien */
 
   --warning: #e88c2b;
@@ -134,8 +138,8 @@
   --brand-line: #a08a78;
 
   --bg: #1c1613;
-  --bg-from: #241c17;
-  --bg-to: #16110e;
+  --bg-from: #14100e;
+  --bg-to: #2e241d;
 
   --surface: #322721;
   --surface-2: #3f322a;
