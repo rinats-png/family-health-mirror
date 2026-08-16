@@ -57,6 +57,17 @@ mit beschrifteten Linien (P3/P10/P50/P90/P97) und neutralem Perzentilwert.
 **Impfübersicht.** Manuell geführte Liste plus Fotos des Impfpasses. Keine
 Fälligkeiten, keine Vollständigkeitsprüfung, kein Abgleich mit einem Impfplan.
 
+**Zusammenzählung.** Je Kategorie und Zeitraum: Anzahl der Einträge, Kalendertage
+mit einem Eintrag, längste Folge aufeinanderfolgender solcher Tage, erster und
+letzter Eintrag. Keine Zusammenfassung zu Episoden, keine Schwellenwerte.
+
+**Ein Kind zu zweit führen.** Jedes Kind bekommt auf Wunsch einen
+alphanumerischen Code. Damit erzeugt die App ein verschlüsseltes Übergabepaket,
+das die zweite Person einliest — danach führen beide Geräte dasselbe Kind.
+Erneutes Einlesen führt zusammen statt zu verdoppeln; gelöschte Einträge bleiben
+gelöscht. Ohne Server: Den Übertragungsweg wählt der Nutzer selbst, und es ist
+ein Abgleich zu einem Zeitpunkt, keine laufende Synchronisierung.
+
 **Export.** PDF mit Rohdatentabellen und der Kopfzeile „Elterngeführte
 Dokumentation. Keine ärztliche Bewertung." Dazu JSON und CSV.
 
@@ -67,6 +78,7 @@ App-Sperre mit Passwort und AES-GCM-Verschlüsselung auf dem Gerät.
 ## Was bewusst fehlt
 
 Kein berechneter Gesundheitswert. Keine Trendbewertung. Keine Mustererkennung.
+Keine Zusammenfassung von Einträgen zu Krankheitsepisoden oder „Schüben".
 Keine Einstufung von Messwerten. Keine Schwellenwertwarnung. Keine
 Dosierungslogik. Keine Impfplan-Ableitung. Kein Symptom-Checker. Keine
 Entwicklungsbewertung. Keine KI.

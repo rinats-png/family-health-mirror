@@ -22,6 +22,7 @@ import {
   type Envelope,
 } from '../db/persistence';
 import { nowISO } from '../domain/dates';
+import { generateShareCode, mergeSharePayload, type SharePayload } from '../domain/share';
 import type {
   AppState,
   Category,
@@ -33,6 +34,7 @@ import type {
   Reminder,
   Settings,
   SyncMeta,
+  Tombstone,
   VaccinationRecord,
 } from '../domain/types';
 
@@ -46,6 +48,16 @@ function uid(prefix: string): string {
 
 function meta(): SyncMeta {
   return { createdAt: nowISO(), updatedAt: nowISO() };
+}
+
+/**
+ * Löschen hinterlässt einen Grabstein: nur Kennung und Zeitpunkt, kein Inhalt.
+ * Ohne ihn würde ein Datensatz, den ein Elternteil gelöscht hat, beim nächsten
+ * Zusammenführen vom anderen Gerät wieder auftauchen.
+ */
+function grave(ids: ID[], existing: Tombstone[]): Tombstone[] {
+  const at = nowISO();
+  return [...existing.filter((t) => !ids.includes(t.id)), ...ids.map((id) => ({ id, at }))];
 }
 
 function defaultCategories(): Category[] {
@@ -74,6 +86,7 @@ export function emptyState(): AppState {
     reminders: [],
     vaccinations: [],
     passPhotos: [],
+    tombstones: [],
     settings: {
       locale: browserLocale(),
       theme: 'system',
@@ -96,6 +109,7 @@ function migrate(loaded: AppState): AppState {
     ...loaded,
     schemaVersion: SCHEMA_VERSION,
     categories: loaded.categories?.length ? loaded.categories : base.categories,
+    tombstones: loaded.tombstones ?? [],
     settings: { ...base.settings, ...loaded.settings },
   };
 }
@@ -126,6 +140,10 @@ interface StoreValue {
   removeChild: (id: ID) => void;
   /** Löscht alle Aufzeichnungen eines Kindes, behält aber das Kind selbst. */
   clearChildData: (id: ID) => void;
+  /** Erzeugt den Übergabecode eines Kindes, falls noch keiner vergeben ist. */
+  ensureShareCode: (id: ID) => string;
+  /** Führt ein eingelesenes Übergabepaket mit dem eigenen Bestand zusammen. */
+  mergeShare: (payload: SharePayload) => void;
 
   add: <T extends { id: ID }>(collection: Collection, record: Omit<T, keyof SyncMeta | 'id'>) => T;
   update: (collection: Collection, id: ID, patch: Record<string, unknown>) => void;
@@ -276,6 +294,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const removeChild = useCallback<StoreValue['removeChild']>((id) => {
     setState((s) => {
       const remaining = s.children.filter((c) => c.id !== id);
+      const gone = [
+        id,
+        ...s.entries.filter((e) => e.childId === id).map((e) => e.id),
+        ...s.measurements.filter((m) => m.childId === id).map((m) => m.id),
+        ...s.reminders.filter((r) => r.childId === id).map((r) => r.id),
+        ...s.vaccinations.filter((v) => v.childId === id).map((v) => v.id),
+        ...s.passPhotos.filter((p) => p.childId === id).map((p) => p.id),
+      ];
       return {
         ...s,
         children: remaining,
@@ -284,6 +310,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
         reminders: s.reminders.filter((r) => r.childId !== id),
         vaccinations: s.vaccinations.filter((v) => v.childId !== id),
         passPhotos: s.passPhotos.filter((p) => p.childId !== id),
+        tombstones: grave(gone, s.tombstones),
         settings: {
           ...s.settings,
           activeChildId:
@@ -294,14 +321,41 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const clearChildData = useCallback<StoreValue['clearChildData']>((id) => {
+    setState((s) => {
+      const gone = [
+        ...s.entries.filter((e) => e.childId === id).map((e) => e.id),
+        ...s.measurements.filter((m) => m.childId === id).map((m) => m.id),
+        ...s.reminders.filter((r) => r.childId === id).map((r) => r.id),
+        ...s.vaccinations.filter((v) => v.childId === id).map((v) => v.id),
+        ...s.passPhotos.filter((p) => p.childId === id).map((p) => p.id),
+      ];
+      return {
+        ...s,
+        entries: s.entries.filter((e) => e.childId !== id),
+        measurements: s.measurements.filter((m) => m.childId !== id),
+        reminders: s.reminders.filter((r) => r.childId !== id),
+        vaccinations: s.vaccinations.filter((v) => v.childId !== id),
+        passPhotos: s.passPhotos.filter((p) => p.childId !== id),
+        tombstones: grave(gone, s.tombstones),
+      };
+    });
+  }, []);
+
+  const ensureShareCode = useCallback<StoreValue['ensureShareCode']>((id) => {
+    const existing = latest.current.children.find((c) => c.id === id)?.shareCode;
+    if (existing) return existing;
+    const code = generateShareCode();
     setState((s) => ({
       ...s,
-      entries: s.entries.filter((e) => e.childId !== id),
-      measurements: s.measurements.filter((m) => m.childId !== id),
-      reminders: s.reminders.filter((r) => r.childId !== id),
-      vaccinations: s.vaccinations.filter((v) => v.childId !== id),
-      passPhotos: s.passPhotos.filter((p) => p.childId !== id),
+      children: s.children.map((c) =>
+        c.id === id ? { ...c, shareCode: code, updatedAt: nowISO() } : c,
+      ),
     }));
+    return code;
+  }, []);
+
+  const mergeShare = useCallback<StoreValue['mergeShare']>((payload) => {
+    setState((s) => mergeSharePayload(s, payload));
   }, []);
 
   const add = useCallback<StoreValue['add']>((collection, record) => {
@@ -323,6 +377,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState((s) => ({
       ...s,
       [collection]: (s[collection] as { id: ID }[]).filter((r) => r.id !== id),
+      tombstones: grave([id], s.tombstones),
     }));
   }, []);
 
@@ -355,11 +410,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       state, ready, lockState, activeChild,
       unlock, enableLock, disableLock,
       setActiveChild, addChild, updateChild, removeChild, clearChildData,
+      ensureShareCode, mergeShare,
       add, update, remove, updateSettings, replaceState, resetAll,
     }),
     [
       state, ready, lockState, activeChild, unlock, enableLock, disableLock,
       setActiveChild, addChild, updateChild, removeChild, clearChildData,
+      ensureShareCode, mergeShare,
       add, update, remove, updateSettings, replaceState, resetAll,
     ],
   );

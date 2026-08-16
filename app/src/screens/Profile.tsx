@@ -9,6 +9,7 @@ import type { AppState, Child, Locale, Sex } from '../domain/types';
 import { DateField } from '../ui/DateField';
 import { Sheet } from '../ui/Sheet';
 import { ExportSheet } from './ExportSheet';
+import { ShareSheet } from './ShareSheet';
 
 export function Profile({ child }: { child: Child }) {
   const { t, locale } = useI18n();
@@ -23,6 +24,7 @@ export function Profile({ child }: { child: Child }) {
   // wird übersehen und macht jede Altersangabe falsch.
   const [childForm, setChildForm] = useState({ name: '', birthDate: '' });
   const [exporting, setExporting] = useState(false);
+  const [sharing, setSharing] = useState<Child | null>(null);
   const [tileDraft, setTileDraft] = useState('');
   const [lockOpen, setLockOpen] = useState(false);
   const [pw, setPw] = useState('');
@@ -94,6 +96,14 @@ export function Profile({ child }: { child: Child }) {
                   {t('childSwitch')}
                 </button>
               )}
+              <button
+                type="button"
+                className="btn btn--sm btn--ghost"
+                aria-label={`${t('childShare')} — ${c.name}`}
+                onClick={() => setSharing(c)}
+              >
+                ⇄
+              </button>
               <button
                 type="button"
                 className="btn btn--sm btn--ghost"
@@ -504,6 +514,8 @@ export function Profile({ child }: { child: Child }) {
       )}
 
       {exporting && <ExportSheet child={child} onClose={() => setExporting(false)} />}
+
+      {sharing && <ShareSheet child={sharing} onClose={() => setSharing(null)} />}
     </>
   );
 }

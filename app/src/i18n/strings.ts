@@ -115,6 +115,18 @@ export const STRINGS = {
     // Verlauf
     historyTitle: 'Verlauf',
     chartsTitle: 'Diagramme',
+    tallyTitle: 'Zusammenzählung',
+    tallyPeriodEntries: 'Einträge im Zeitraum',
+    tallyPeriodDays: 'Tage mit Eintrag',
+    tallyEntry: 'Eintrag',
+    tallyEntries: 'Einträge',
+    tallyDay: 'Tag',
+    tallyDays: 'Tage',
+    tallyRun: 'längste Folge',
+    tallyRange: 'von … bis',
+    tallyNone: 'Für diesen Zeitraum ist nichts eingetragen.',
+    tallyHint:
+      'Gezählt wird, was Sie selbst eingetragen haben: Einträge, Kalendertage mit einem Eintrag und die längste Folge aufeinanderfolgender solcher Tage. Die App fasst nichts zu einem Geschehen zusammen und kennt keine Schwellenwerte.',
     chartEntries: 'Einträge je Tag',
     chartEntriesMonths: 'Einträge je Monat',
     chartTemperature: 'Eingetragene Temperatur',
@@ -182,6 +194,27 @@ export const STRINGS = {
     childSwitch: 'Wechseln',
     childPick: 'Kind wählen',
     childCount: 'Aufzeichnungen',
+    childShare: 'Kind zu zweit führen',
+    shareTitle: 'Kind zu zweit führen',
+    shareGive: 'Weitergeben',
+    shareTake: 'Übernehmen',
+    shareCodeOf: 'Code für',
+    shareCreateCode: 'Code erzeugen',
+    shareCodeHint:
+      'Diesen Code der zweiten Person nennen — mündlich oder auf einem anderen Weg als die Datei. Er allein öffnet das Paket.',
+    sharePackage: 'Paket erzeugen und sichern',
+    sharePackageHint:
+      'Die Datei ist verschlüsselt. Sie können sie über einen beliebigen Weg weitergeben; ohne den Code ist sie nicht lesbar.',
+    shareFile: 'Übergabepaket wählen',
+    shareFileInvalid: 'Diese Datei ist kein Übergabepaket.',
+    shareEnterCode: 'Code eingeben',
+    shareAdopt: 'Daten übernehmen',
+    shareAdopted: 'Übernommen. Enthaltene Aufzeichnungen:',
+    shareCodeWrong: 'Der Code passt nicht zu dieser Datei.',
+    shareMergeHint:
+      'Vorhandene Aufzeichnungen bleiben erhalten. Bei zwei Fassungen desselben Eintrags gilt die zuletzt geänderte; was eine Seite gelöscht hat, bleibt gelöscht.',
+    shareNoServer:
+      'Die Daten gehen keinen Umweg über einen Server. Deshalb ist das ein Abgleich zu einem Zeitpunkt: Für neue Einträge tauschen Sie erneut ein Paket aus.',
     childClearData: 'Aufzeichnungen löschen',
     childClearDataConfirm:
       'Alle Einträge, Messwerte, Impfeintragungen, Erinnerungen und Fotos dieses Kindes löschen? Das Kind selbst bleibt bestehen.',
@@ -361,6 +394,18 @@ export const STRINGS = {
 
     historyTitle: 'History',
     chartsTitle: 'Charts',
+    tallyTitle: 'Counts',
+    tallyPeriodEntries: 'records in the period',
+    tallyPeriodDays: 'days with a record',
+    tallyEntry: 'record',
+    tallyEntries: 'records',
+    tallyDay: 'day',
+    tallyDays: 'days',
+    tallyRun: 'longest run',
+    tallyRange: 'from … to',
+    tallyNone: 'Nothing entered for this period.',
+    tallyHint:
+      'This counts what you entered yourself: records, calendar days with a record, and the longest run of consecutive such days. The app groups nothing into an episode and knows no thresholds.',
     chartEntries: 'Records per day',
     chartEntriesMonths: 'Records per month',
     chartTemperature: 'Temperature you entered',
@@ -425,6 +470,27 @@ export const STRINGS = {
     childSwitch: 'Switch',
     childPick: 'Choose a child',
     childCount: 'records',
+    childShare: 'Share this child',
+    shareTitle: 'Share this child',
+    shareGive: 'Hand over',
+    shareTake: 'Receive',
+    shareCodeOf: 'Code for',
+    shareCreateCode: 'Create a code',
+    shareCodeHint:
+      'Tell the second person this code — by voice or on a different route than the file. It alone opens the package.',
+    sharePackage: 'Create and save the package',
+    sharePackageHint:
+      'The file is encrypted. You can pass it on any way you like; without the code it cannot be read.',
+    shareFile: 'Choose a package',
+    shareFileInvalid: 'This file is not a handover package.',
+    shareEnterCode: 'Enter the code',
+    shareAdopt: 'Take over the data',
+    shareAdopted: 'Taken over. Records contained:',
+    shareCodeWrong: 'The code does not match this file.',
+    shareMergeHint:
+      'Existing records are kept. Where the same record exists twice, the one changed last applies; what one side deleted stays deleted.',
+    shareNoServer:
+      'The data takes no detour via a server. That is why this is a one-off exchange: for new records, swap a package again.',
     childClearData: 'Delete records',
     childClearDataConfirm:
       'Delete all records, measurements, vaccination entries, reminders and photos for this child? The child itself stays.',

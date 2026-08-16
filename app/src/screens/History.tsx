@@ -14,6 +14,7 @@ import {
   todayISO,
   weekdayNames,
 } from '../domain/dates';
+import { tallyPeriod } from '../domain/summary';
 import { celsiusToDisplay, formatNumber } from '../domain/units';
 import { useActions, useStore } from '../store/store';
 import type { Child, Entry, ISODate } from '../domain/types';
@@ -189,6 +190,16 @@ export function History({
     });
   }, [view, monthStart, monthEnd, cursor.year, locale]);
 
+  /**
+   * Auszählung für den gezeigten Zeitraum. Bewusst keine Episodenbildung und
+   * kein Temperatur-Schwellenwert — Begründung in domain/summary.ts.
+   */
+  const tally = useMemo(() => {
+    const from = view === 'month' ? monthStart : `${cursor.year}-01-01`;
+    const to = view === 'month' ? monthEnd : `${cursor.year}-12-31`;
+    return tallyPeriod(childEntries, from, to);
+  }, [childEntries, view, monthStart, monthEnd, cursor.year]);
+
   const hasBars = bars.some((b) => b.segments.length > 0);
 
   const dayEntries = selected
@@ -329,6 +340,56 @@ export function History({
           </div>
         )}
       </div>
+
+      <section className="section">
+        <div className="section__title">{t('tallyTitle')}</div>
+        {tally.entries === 0 ? (
+          <div className="empty">{t('tallyNone')}</div>
+        ) : (
+          <>
+            <div className="tiles">
+              <div className="tile">
+                <div className="tile__label">{t('tallyPeriodEntries')}</div>
+                <div className="tile__value tabular">{tally.entries}</div>
+              </div>
+              <div className="tile">
+                <div className="tile__label">{t('tallyPeriodDays')}</div>
+                <div className="tile__value tabular">{tally.days}</div>
+              </div>
+            </div>
+
+            <div className="list list--grouped" style={{ marginTop: 'var(--space-3)' }}>
+              {tally.byCategory.map((row) => {
+                const category = state.categories.find((c) => c.id === row.categoryId);
+                if (!category) return null;
+                return (
+                  <div key={row.categoryId} className="list-item">
+                    <span
+                      className="list-item__badge"
+                      style={{ background: category.color }}
+                      aria-hidden
+                    >
+                      {category.icon}
+                    </span>
+                    <div className="list-item__main">
+                      <div className="list-item__title">{categoryLabel(category, locale)}</div>
+                      <div className="list-item__meta tabular">
+                        {row.entries} {t(row.entries === 1 ? 'tallyEntry' : 'tallyEntries')} ·{' '}
+                        {row.days} {t(row.days === 1 ? 'tallyDay' : 'tallyDays')} ·{' '}
+                        {t('tallyRun')}: {row.longestRun}
+                      </div>
+                      <div className="list-item__meta tabular">
+                        {formatDateShort(row.firstDay, locale)} – {formatDateShort(row.lastDay, locale)}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="small muted" style={{ marginTop: 'var(--space-2)' }}>{t('tallyHint')}</p>
+          </>
+        )}
+      </section>
 
       <section className="section">
         <div className="section__title">{t('chartsTitle')}</div>

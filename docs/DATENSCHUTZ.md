@@ -68,6 +68,16 @@ Richten Sie in den Einstellungen die App-Sperre mit einem Passwort ein, werden d
 
 *(Für die native Fassung mit optionaler Sicherung über iCloud bzw. Google Drive: Die Sicherung erfolgt in **Ihr** Konto beim jeweiligen Anbieter und ist Ende-zu-Ende verschlüsselt. Für die Verarbeitung in Ihrem eigenen Konto gilt die Datenschutzerklärung des jeweiligen Anbieters: [Links ergänzen].)*
 
+### 7.1 Ein Kind zu zweit führen
+
+Sie können die Aufzeichnungen zu einem Kind an eine zweite Person weitergeben, etwa den anderen Elternteil. Dazu erzeugt die App eine Datei und einen alphanumerischen Code.
+
+* Die Datei ist mit AES-GCM verschlüsselt; der Schlüssel wird per PBKDF2-SHA-256 aus dem Code abgeleitet. Ohne den Code ist sie nicht lesbar.
+* Unverschlüsselt stehen in der Datei ausschließlich der Rufname des Kindes, eine zufällige Kennung und der Zeitpunkt der Erstellung — damit das empfangende Gerät vor dem Entschlüsseln anzeigen kann, worum es geht.
+* **Den Übertragungsweg wählen Sie.** Die App verschickt nichts. Sie legt die Datei ab; ob Sie sie über Messenger, E-Mail, eine Dateiablage oder einen USB-Stick weitergeben, entscheiden Sie. Für diesen Weg gilt die Datenschutzerklärung des von Ihnen gewählten Dienstes.
+* Geben Sie den Code nach Möglichkeit über einen **anderen Weg** weiter als die Datei. Wer beides hat, kann die Aufzeichnungen lesen.
+* Es entsteht keine dauerhafte Verbindung zwischen den Geräten. Jede Weitergabe ist ein einzelner, von Ihnen ausgelöster Vorgang.
+
 ## 8. Berechtigungen des Geräts
 
 | Berechtigung | Wofür | Erforderlich |

@@ -31,6 +31,12 @@ export interface Child extends SyncMeta {
   id: ID;
   name: string;
   birthDate: ISODate;
+  /**
+   * Alphanumerischer Code, mit dem ein zweites Gerät dieses Kind übernimmt.
+   * Er wird erst erzeugt, wenn geteilt wird, und ist zugleich das Geheimnis,
+   * aus dem der Schlüssel des Übergabepakets abgeleitet wird.
+   */
+  shareCode?: string;
   /** Nur für die Auswahl der geschlechtsspezifischen Referenzkurve. */
   sex?: Sex;
   /** Data-URL, bleibt auf dem Gerät. */
@@ -137,6 +143,19 @@ export interface Settings {
   lockEnabled: boolean;
 }
 
+/**
+ * Grabstein für einen gelöschten Datensatz.
+ *
+ * Nötig, sobald zwei Geräte dasselbe Kind führen: Ohne Grabstein wüsste das
+ * andere Gerät nichts von der Löschung und würde den Datensatz beim nächsten
+ * Zusammenführen wieder einspielen. Der Grabstein enthält keinen Inhalt,
+ * nur die Kennung und den Zeitpunkt.
+ */
+export interface Tombstone {
+  id: ID;
+  at: ISODateTime;
+}
+
 export interface AppState {
   schemaVersion: number;
   children: Child[];
@@ -146,5 +165,6 @@ export interface AppState {
   reminders: Reminder[];
   vaccinations: VaccinationRecord[];
   passPhotos: PassPhoto[];
+  tombstones: Tombstone[];
   settings: Settings;
 }

@@ -60,11 +60,13 @@ Eine Auszählung dessen, was der Nutzer selbst angelegt hat („17 Einträge im 
 | Medikamente | Präparat und Menge als Freitext mit Zeitstempel | keine. Siehe 3/6. |
 | Erinnerungen | Nutzer wählt Text und Zeitpunkt | keine. Die Anwendung schlägt keinen Zeitpunkt vor und errechnet keinen. |
 | Kalender | Monats- und Jahresansicht, Tage mit Einträgen tragen Punkte in der Farbe der vom Nutzer gewählten Kategorie | keine. Keine Einfärbung nach Art, Menge oder Schwere. |
+| Zusammenzählung | Je Kategorie: Anzahl Einträge, Kalendertage mit Eintrag, längste Folge aufeinanderfolgender solcher Tage, erster und letzter Eintrag | Grenzbereich, siehe 5.5. |
 | Diagramme im Verlauf | Balken: Anzahl der eigenen Einträge je Tag bzw. je Monat. Punkte: die eingetragene Temperatur über der Zeit | Grenzbereich, siehe 5.4. |
 | Filter/Suche | Zeitraum, Kategorie, Freitext über Notizen und Tags | keine. |
 | Messwerte | Gewicht, Länge, Kopfumfang; Darstellung auf wählbarer Referenzkurve; neutraler Perzentilwert | Grenzbereich, siehe 5.1. |
 | Impfungen | Manuelle Liste, Fotos des Impfpasses, PDF-Ausgabe | keine. Siehe 3/7. |
 | Export | PDF (Rohdatentabellen), JSON, CSV | keine. Siehe 5.2. |
+| Weitergabe | Verschlüsseltes Übergabepaket je Kind plus alphanumerischer Code; Zusammenführen auf dem zweiten Gerät | keine. Übertragen wird ausschließlich, was der Nutzer eingetragen hat. Kein Server, keine dauerhafte Verbindung. |
 
 ## 5. Einzelbegründungen für die Grenzbereiche
 
@@ -108,6 +110,18 @@ Die Farbe eines Tages ist die Farbe der Kategorie, die der Nutzer selbst gewähl
 * keine Achsenbeschriftung, die einen Wertebereich benennt oder einordnet.
 
 Die Einschränkungen stehen als Kommentar im Kopf von `app/src/ui/HistoryChart.tsx`, damit sie beim Erweitern der Datei sichtbar sind.
+
+### 5.5 Zusammenzählung
+
+**Warum das keine Bewertung ist:** Abschnitt 3.2 benennt die Auszählung eigener Einträge ausdrücklich als zulässig. Gezählt werden Einträge, Kalendertage mit mindestens einem Eintrag und die längste Folge aufeinanderfolgender solcher Tage. Alle drei Zahlen sind am Kalender nachprüfbar; keine davon setzt Wissen voraus, das der Nutzer nicht selbst eingetragen hat.
+
+**Was konkret unterlassen wird — und was ausdrücklich abgelehnt wurde:**
+* **keine Bildung von Episoden, Schüben oder Phasen.** Die Anfrage nach „8 Fieberschüben in 8 Wochen" wurde in dieser Form nicht umgesetzt: Die Anwendung müsste festlegen, welche Einträge ein Geschehen bilden und welche Lücke es trennt. Diese Zusammenfassung hat der Nutzer nie eingegeben — sie wäre eine Aussage der Anwendung und fällt unter Ausschluss #3.
+* **kein Temperatur-Schwellenwert.** Ob ein Eintrag „Fieber" ist, ergibt sich ausschließlich aus der Kategorie, die der Nutzer selbst gewählt hat, nie aus einem gemessenen Wert (Ausschluss #5).
+* keine Häufigkeitsbewertung, kein Vergleich mit einem Erwartungswert, keine Formulierung wie „häufiger als üblich".
+* `longestRun` behauptet nicht, dass die gezählten Tage ein durchgehendes Geschehen sind. Die Oberfläche nennt sie „längste Folge" — eine Eigenschaft der Einträge, nicht des Kindes.
+
+Die Einschränkungen stehen als Kommentar im Kopf von `app/src/domain/summary.ts`.
 
 ## 6. Sprachregeln
 
