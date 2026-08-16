@@ -268,7 +268,7 @@ input, select, textarea {
   color: #fff;
   border-color: var(--action);
 }
-:root[data-theme='dark'] .btn--primary { color: #06222b; }
+:root[data-theme='dark'] .btn--primary { color: #26202a; }
 
 .btn--primary:hover { background: var(--action-hover); border-color: var(--action-hover); }
 
@@ -328,7 +328,7 @@ input, select, textarea {
   color: #fff;
 }
 :root[data-theme='dark'] .seg__item[aria-pressed='true'],
-:root[data-theme='dark'] .seg__item[data-selected='true'] { color: #06222b; }
+:root[data-theme='dark'] .seg__item[data-selected='true'] { color: #26202a; }
 
 /* ---------- Bottom-Sheet ---------- */
 

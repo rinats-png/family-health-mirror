@@ -1,16 +1,17 @@
 /*
  * Design-System-Tokens.
  *
- * #DDC6B6 ist die Hauptfarbe der Anwendung. Sie trägt den Hintergrundverlauf,
- * die Marken-Flächen und den Rahmen und ist damit auf jedem Bildschirm präsent.
+ * Zwei Farben tragen die Anwendung: Turquoise #99E1D9 als Hauptfarbe und
+ * Wine Ash #32292F als Gegenstück. Im hellen Thema ist Turquoise der Grund und
+ * Wine Ash die Schrift; im dunklen tauschen sie die Plätze.
  *
- * Als Textfarbe oder Füllung eines Bedienelements ist sie dagegen nicht
- * verwendbar: Auf Weiß erreicht sie 1,64:1, WCAG fordert 3:1 für Bedienelemente
+ * Als Textfarbe oder Füllung eines Bedienelements ist die Hauptfarbe nicht
+ * verwendbar: Auf Weiß erreicht sie 1,42:1, WCAG fordert 3:1 für Bedienelemente
  * und 4,5:1 für Text. Daraus folgt die Rollentrennung:
  *
  *   --brand        Fläche. Darauf immer --brand-ink oder --brand-muted.
- *   --action       Bedienelemente (4,88:1 auf dem tiefsten Grundton).
- *   --accent       ausschließlich dekorativ, nie Text (2,57:1 gegen Weiß).
+ *   --action       Bedienelemente (5,43:1 auf dem tiefsten Grundton).
+ *   --accent       ausschließlich dekorativ, nie Text.
  *   --brand-line   Kante — trägt die Abgrenzung, wo die Füllung es nicht kann.
  *
  * Alle Paare sind in scripts/check-contrast.mjs hinterlegt und werden bei
@@ -18,50 +19,42 @@
  */
 
 :root {
-  /* Hauptfarbe — Flächen und Rahmen, niemals als Textfarbe */
-  --brand: #ddc6b6;
-  --brand-soft: #f2e7de;        /* erhabene Fläche AUF einer Karte */
-  --brand-strong: #bc9c82;      /* Trennlinien */
-  --brand-ink: #262223;         /* Haupttext AUF --brand — 9,61:1 */
-  --brand-muted: #54443a;       /* Sekundärtext AUF --brand — 5,66:1 */
-  --brand-line: #6b5039;        /* Kante: 3,35:1 zur Scheibe, 6,05:1 zum tiefen Grund */
+  /* Hauptfarbe — Flächen und Grund, niemals als Textfarbe */
+  --brand: #99e1d9;             /* Turquoise */
+  --brand-soft: #e2f6f2;        /* erhabene Fläche AUF einer Karte */
+  --brand-strong: #5fb5ab;      /* Trennlinien */
+  --brand-ink: #32292f;         /* Wine Ash — Haupttext AUF --brand, 9,47:1 */
+  --brand-muted: #4b3f46;       /* Sekundärtext AUF --brand */
+  --brand-line: #2f5a55;        /* Kante: 3,97:1 zur Scheibe, 6,57:1 zum hellen Grund */
 
   /*
    * Der Grund ist ein Verlauf aus der Hauptfarbe: oben der tiefe Ton, nach
    * unten heller auslaufend.
    *
-   * Der frühere Versuch mit einem Verlauf ist daran gescheitert, dass er
-   * HELLER lief als die Flächen — jede Karte wirkte dadurch als dunkler Fleck.
-   * Jetzt ist es umgekehrt: Die Flächen sind ein heller Schleier über dem
-   * Grund und liegen damit immer über ihm, egal an welcher Stelle. Erst
-   * dadurch ist das Milchglas überhaupt als Glas zu erkennen — vorher lag es
-   * auf einem Ton, der ihm exakt entsprach, und es gab nichts durchscheinen
-   * zu lassen.
+   * Die Richtung ist nicht beliebig. Läuft der Grund heller als die Flächen,
+   * wird jede Karte als dunkler Fleck gelesen statt als Scheibe — daran sind
+   * drei frühere Anläufe gescheitert. Die Flächen sind ein heller Schleier
+   * über dem Grund und liegen damit an jeder Stelle über ihm.
    *
    * Der tiefste Ton --bg-from ist der Prüfmaßstab für jeden Text, der direkt
    * auf dem Grund steht.
    */
-  --bg: #d9bfa8;
-  --bg-from: #c7a98f;
-  --bg-to: #f2e6dc;
+  --bg: #a9e5de;
+  --bg-from: #7cc7be;
+  --bg-to: #d7f2ee;
 
   /*
    * Milchglas.
    *
    * Die Flächen tragen keine eigene Farbe, sondern einen hellen Schleier über
-   * dem, was hinter ihnen liegt, plus Unschärfe. Über dem Verlauf ergibt das
-   * #D1B8A4 am tiefen Ende bis #F4E9E1 am hellen — immer heller als der Grund
-   * darunter, und genau daran erkennt man die Scheibe.
+   * dem, was hinter ihnen liegt, plus Unschärfe.
    *
    * --surface ist der PRÜFMASSSTAB und steht auf dem TIEFSTEN Grundton. Das
    * ist der dunkelste Wert, den eine Scheibe annehmen kann — den Schleier
    * weggedacht. Wer gegen diesen Wert besteht, besteht überall.
-   *
-   * Kopfzeile und Fußnavigation nehmen einen dichteren Schleier, weil Inhalt
-   * dahinter durchscrollt.
    */
-  --surface: #c7a98f;
-  --surface-2: #f2e7de;
+  --surface: #7cc7be;
+  --surface-2: #e2f6f2;
 
   --surface-glass: rgba(255, 255, 255, 0.18);
   /*
@@ -70,8 +63,8 @@
    * übereinander sind nicht mehr lesbar, sondern nur noch unruhig. Sie tragen
    * deshalb einen Ton statt reinem Weiß und deutlich mehr Deckkraft.
    */
-  --chrome-glass: rgba(238, 227, 218, 0.93);
-  --sheet-glass: rgba(242, 233, 226, 0.92);
+  --chrome-glass: rgba(226, 246, 242, 0.93);
+  --sheet-glass: rgba(232, 249, 246, 0.92);
   --glass-blur: 24px;
   /*
    * Hinter einem offenen Blatt wird der ganze Bildschirm unscharf. Das ist
@@ -79,18 +72,18 @@
    * nicht bedienbar. Es soll auch nicht mehr gelesen werden können.
    */
   --backdrop-blur: 28px;
-  --backdrop-tint: rgba(38, 34, 35, 0.55);
+  --backdrop-tint: rgba(50, 41, 47, 0.55);
   --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -1px 0 rgba(74, 47, 38, 0.12);
+    inset 0 -1px 0 rgba(50, 41, 47, 0.12);
 
-  --text: #262223;
-  --text-secondary: #023441;
-  --text-muted: #483630;        /* 5,15:1 auf dem tiefen Grund, 9,28:1 auf dem hellen */
+  --text: #32292f;              /* Wine Ash — 7,22:1 auf dem tiefen Grund */
+  --text-secondary: #1f3f3c;
+  --text-muted: #46393f;        /* 5,62:1 auf dem tiefen Grund */
 
-  --action: #0d4353;            /* 4,88:1 auf dem tiefen Grund, 10,80:1 für weißen Text */
-  --action-hover: #0a3542;
-  --action-soft: #f2e7de;
-  --accent: #65abc4;            /* dekorativ: Diagramme, Linien */
+  --action: #16463f;            /* 5,43:1 auf dem tiefen Grund, 10,6:1 für weißen Text */
+  --action-hover: #0e332e;
+  --action-soft: #e2f6f2;
+  --accent: #52a89e;            /* dekorativ: Diagramme, Linien */
 
   --warning: #e88c2b;
   --warning-ink: #6b3a00;
@@ -100,8 +93,8 @@
   --ok: #2f6b4f;
   --ok-soft: #e4f0ea;
 
-  --border: #a8917f;
-  --border-strong: #6b5039;
+  --border: #6fa79f;
+  --border-strong: #2f5a55;
 
   --radius-tile: 20px;
   --radius-card: 28px;
@@ -117,9 +110,9 @@
 
   --tap: 48px;
 
-  --shadow-tile: 0 1px 2px rgba(74, 47, 38, 0.05), 0 6px 18px rgba(74, 47, 38, 0.07);
-  --shadow-card: 0 2px 6px rgba(74, 47, 38, 0.07), 0 14px 34px rgba(74, 47, 38, 0.1);
-  --shadow-sheet: 0 -8px 40px rgba(74, 47, 38, 0.22);
+  --shadow-tile: 0 1px 2px rgba(50, 41, 47, 0.06), 0 6px 18px rgba(50, 41, 47, 0.08);
+  --shadow-card: 0 2px 6px rgba(50, 41, 47, 0.08), 0 14px 34px rgba(50, 41, 47, 0.11);
+  --shadow-sheet: 0 -8px 40px rgba(50, 41, 47, 0.24);
 
   --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
   /* Systemserifen — keine Web-Font, damit keine externe Ressource nötig ist. */
@@ -128,37 +121,41 @@
   --fs-base: 17px;
 }
 
-/* Dunkles Thema: gleiche Rollen, andere Werte. */
+/*
+ * Dunkles Thema: dieselben Rollen, die beiden Farben tauschen die Plätze.
+ * Der Grund ist Wine Ash, und Turquoise wird zur Handlungsfarbe — genau die
+ * Paarung der Vorlage, nur andersherum.
+ */
 :root[data-theme='dark'] {
-  --brand: #6a5749;
-  --brand-soft: #3a2f28;
-  --brand-strong: #8b7565;
-  --brand-ink: #f2ece7;
-  --brand-muted: #e3dad3;
-  --brand-line: #a08a78;
+  --brand: #4e414a;
+  --brand-soft: #4a3d45;
+  --brand-strong: #7b6a75;
+  --brand-ink: #f1ecef;
+  --brand-muted: #ded4da;
+  --brand-line: #9d8b96;
 
-  --bg: #1c1613;
-  --bg-from: #14100e;
-  --bg-to: #2e241d;
+  --bg: #2b232a;
+  --bg-from: #221c20;
+  --bg-to: #3d323a;
 
-  --surface: #322721;
-  --surface-2: #3f322a;
+  --surface: #221c20;
+  --surface-2: #4a3d45;
 
   --surface-glass: rgba(255, 255, 255, 0.07);
-  --chrome-glass: rgba(26, 20, 17, 0.93);
-  --sheet-glass: rgba(30, 24, 20, 0.97);
+  --chrome-glass: rgba(30, 25, 29, 0.93);
+  --sheet-glass: rgba(34, 28, 32, 0.97);
   --backdrop-tint: rgba(0, 0, 0, 0.62);
   --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.13),
     inset 0 -1px 0 rgba(0, 0, 0, 0.35);
 
-  --text: #f4eee9;
-  --text-secondary: #dbcec4;
-  --text-muted: #bcaa9c;
+  --text: #f4eef2;
+  --text-secondary: #cfe6e2;
+  --text-muted: #b7a9b1;
 
-  --action: #7fc2da;
-  --action-hover: #a5d5e6;
-  --action-soft: #3a2f28;
-  --accent: #65abc4;
+  --action: #99e1d9;            /* Turquoise */
+  --action-hover: #b9ece6;
+  --action-soft: #4a3d45;
+  --accent: #52a89e;
 
   --warning: #f0a758;
   --warning-ink: #f7dfc4;
@@ -168,8 +165,8 @@
   --ok: #7fc79f;
   --ok-soft: #163023;
 
-  --border: #4d3f34;
-  --border-strong: #a08a78;
+  --border: #4e414a;
+  --border-strong: #9d8b96;
 
   --shadow-tile: 0 1px 2px rgba(0, 0, 0, 0.45);
   --shadow-card: 0 2px 6px rgba(0, 0, 0, 0.5), 0 14px 34px rgba(0, 0, 0, 0.45);
@@ -181,11 +178,11 @@
  * dunklen Kinderzimmer nicht blendet.
  */
 :root[data-night='true'] {
-  --bg-from: #1a1411;
-  --bg-to: #100c0a;
-  --surface: #221b17;
-  --text: #e0d6cd;
-  --action: #6ba9be;
+  --bg-from: #1a1519;
+  --bg-to: #100d0f;
+  --surface: #1a1519;
+  --text: #ded5da;
+  --action: #7cc2ba;
 }
 
 :root[data-night='true'] * {

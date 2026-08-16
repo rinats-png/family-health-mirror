@@ -14,7 +14,7 @@
     nichts — sie hält fest, was Eltern eintragen. Ein Bildzeichen ist eine
     Aussage über die Zweckbestimmung wie jeder Text (siehe REGULATORY.md §6).
   -->
-  <rect width="512" height="512" rx="112" fill="#ddc6b6"/>
+  <rect width="512" height="512" rx="112" fill="#99e1d9"/>
 
   <g fill="none" stroke-linecap="round" stroke-linejoin="round">
     <!-- Herzkontur -->
@@ -24,14 +24,14 @@
              a 7 7 0 0 0 20 0
              a 78 78 0 0 1 156 28
              c 0 64, -56 122, -166 194 z"
-          stroke="#6b5039" stroke-width="22"/>
+          stroke="#32292f" stroke-width="22"/>
 
     <!-- Erwachsener -->
-    <circle cx="222" cy="222" r="34" stroke="#6b5039" stroke-width="20"/>
-    <path d="M164 324 a 58 58 0 0 1 116 0" stroke="#6b5039" stroke-width="20"/>
+    <circle cx="222" cy="222" r="34" stroke="#32292f" stroke-width="20"/>
+    <path d="M164 324 a 58 58 0 0 1 116 0" stroke="#32292f" stroke-width="20"/>
 
     <!-- Kind in der Sekundärfarbe -->
-    <circle cx="316" cy="252" r="25" stroke="#0d4353" stroke-width="20"/>
-    <path d="M274 326 a 42 42 0 0 1 84 0" stroke="#0d4353" stroke-width="20"/>
+    <circle cx="316" cy="252" r="25" stroke="#16463f" stroke-width="20"/>
+    <path d="M274 326 a 42 42 0 0 1 84 0" stroke="#16463f" stroke-width="20"/>
   </g>
 </svg>

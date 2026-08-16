@@ -70,14 +70,14 @@ JS-Konstanten für Farben.
 
 ```css
 :root {
-  --brand: #ddc6b6;        /* Flächen, nie Text auf Weiß */
-  --brand-soft: #f0e5dd;
-  --brand-ink: #262223;    /* Text AUF --brand */
+  --brand: #99e1d9;        /* Turquoise — Flächen, nie Text */
+  --brand-soft: #e2f6f2;
+  --brand-ink: #32292f;    /* Wine Ash — Text AUF --brand */
 
-  --action: #16657e;       /* alle Bedienelemente */
-  --action-hover: #0f4c5e;
-  --action-soft: #e3f0f5;
-  --accent: #65abc4;       /* nur dekorativ: Diagramme, Ränder */
+  --action: #16463f;       /* alle Bedienelemente */
+  --action-hover: #0e332e;
+  --action-soft: #e2f6f2;
+  --accent: #52a89e;       /* nur dekorativ: Diagramme, Ränder */
   …
 }
 ```
@@ -96,25 +96,37 @@ nur im hellen Thema existiert, ist ein Bug.
 
 ### 1.2 Die Farbhierarchie
 
-`#DDC6B6` ist die **Hauptfarbe der Anwendung**. Sie trägt den Hintergrundverlauf
-jedes Bildschirms und die Marken-Flächen und ist damit durchgehend präsent.
+Die Anwendung wird von **zwei** Farben getragen: **Turquoise `#99E1D9`** als
+Hauptfarbe und **Wine Ash `#32292F`** als Gegenstück. Im hellen Thema ist
+Turquoise der Grund und Wine Ash die Schrift; im dunklen tauschen sie die
+Plätze — der Grund wird Wine Ash, Turquoise wird zur Handlungsfarbe.
 
-Als Textfarbe oder Füllung eines Bedienelements ist sie dagegen nicht verwendbar:
-Auf Weiß erreicht sie **1,64:1**, WCAG fordert 3:1 für Bedienelemente und 4,5:1 für
-Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine Rollentrennung:
+Als Textfarbe oder Füllung eines Bedienelements ist die Hauptfarbe nicht
+verwendbar: Auf Weiß erreicht sie **1,42:1**, WCAG fordert 3:1 für Bedienelemente
+und 4,5:1 für Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine
+Rollentrennung:
 
-| Rolle | Token | Wert | Verwendung |
-|---|---|---|---|
-| Hauptfarbe | `--brand` | `#DDC6B6` | Marken-Flächen, Herkunft des Verlaufs |
-| Grund | `--bg-from` / `--bg-to` | `#C7A98F` → `#F2E6DC` | Verlauf: tief oben, hell unten |
-| Text darauf | `--brand-ink` | `#262223` | 9,61:1 auf `--brand` |
-| Sekundärtext darauf | `--brand-muted` | `#54443A` | 5,66:1 auf `--brand` |
-| Kante von Flächen | `--brand-line` | `#6B5039` | 3,35:1 zur Scheibe, 6,05:1 zum tiefen Grund |
-| Trennlinie | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
-| Karte, Blatt | `--surface` | `#C7A98F` | Prüfmaßstab = tiefster Grundton; die Fläche selbst ist Milchglas |
-| Erhabene Fläche | `--surface-2` | `#F2E7DE` | Symbolkreise, aktive Pille, Eingabefelder — deckend, heller als die Scheibe |
-| Handlung | `--action` | `#0D4353` | Buttons, Auswahlzustände, Fokusring |
-| Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,38:1) |
+| Rolle | Token | Hell | Dunkel | Verwendung |
+|---|---|---|---|---|
+| Hauptfarbe | `--brand` | `#99E1D9` | `#4E414A` | Marken-Flächen, Herkunft des Verlaufs |
+| Grund | `--bg-from` / `--bg-to` | `#7CC7BE` → `#D7F2EE` | `#221C20` → `#3D323A` | Verlauf: tief oben, hell unten |
+| Text darauf | `--brand-ink` | `#32292F` | `#F1ECEF` | 9,46:1 auf `--brand` |
+| Sekundärtext darauf | `--brand-muted` | `#4B3F46` | `#DED4DA` | 6,73:1 auf `--brand` |
+| Kante von Flächen | `--brand-line` | `#2F5A55` | `#9D8B96` | 3,97:1 zur Scheibe, 6,57:1 zum hellen Grund |
+| Trennlinie | `--brand-strong` | `#5FB5AB` | `#7B6A75` | Kante der Marken-Flächen |
+| Karte, Blatt | `--surface` | `#7CC7BE` | `#221C20` | Prüfmaßstab = tiefster Grundton; die Fläche selbst ist Milchglas |
+| Erhabene Fläche | `--surface-2` | `#E2F6F2` | `#4A3D45` | Symbolkreise, aktive Pille, Eingabefelder — deckend |
+| Handlung | `--action` | `#16463F` | `#99E1D9` | Buttons, Auswahlzustände, Fokusring |
+| Akzent | `--accent` | `#52A89E` | `#52A89E` | Diagramme, Ränder — **nie** als Textfarbe |
+
+**Warum die Handlungsfarbe im hellen Thema nicht Wine Ash ist.** Naheliegend
+wäre, das Gegenstück auch für Buttons zu nehmen. `--action` ist aber nicht nur
+Füllung, sondern auch Textfarbe — der aktive Tab, die Zahlen der Zusammenzählung,
+die Punkte im Diagramm. Wäre sie mit `--text` identisch, unterschiede sich der
+aktive Tab nur noch über Füllung und Schriftschnitt, und die Regel „nie über
+Farbe allein" wäre um eine Säule ärmer. Deshalb ist `--action` ein tiefes Teal
+aus der Turquoise-Familie. Im dunklen Thema stellt sich die Frage nicht: Dort ist
+Turquoise selbst die Handlungsfarbe und steht klar gegen die Wine-Ash-Schrift.
 
 **Der Grund läuft dunkler als die Flächen — nicht umgekehrt.** Das ist die
 Lehre aus drei gescheiterten Anläufen. Zuerst lief der Verlauf *heller* als die
@@ -123,7 +135,7 @@ Karten abgedunkelt (−15 %, dann −5 %) — derselbe Fleck, nur schwächer. Da
 trugen Grund und Karte denselben Ton — flach, und das Milchglas hatte nichts,
 was durchscheinen konnte.
 
-Jetzt ist der Grund ein Verlauf von `#C7A98F` oben nach `#F2E6DC` unten, und
+Jetzt ist der Grund ein Verlauf von `#7CC7BE` oben nach `#D7F2EE` unten, und
 die Flächen sind ein heller Schleier darüber. Damit liegt jede Scheibe an
 jeder Stelle über ihrem Grund, und man sieht sie als Glas statt als Fläche.
 
@@ -137,14 +149,14 @@ Karte, Kopfzeilen-Pille, Fußnavigation und jeder Symbolkreis bekommt
 verschwindet bei Sonnenlicht.
 
 Bedienelemente sind davon ausgenommen: Eingabefelder, Chips, Kalendertage und
-die aktive Tab-Pille liegen auf `--surface-2` (`#F2E7DE`) und heben sich damit
+die aktive Tab-Pille liegen auf `--surface-2` (`#E2F6F2`) und heben sich damit
 zusätzlich zur Kante ab. Sie sind antippbar, Flächen nicht.
 
 **Aktiver Zustand in der Fußnavigation** unterscheidet sich über eine gefüllte
 Pille (`--brand-soft`), den Schriftschnitt (800 statt 600) **und** die Farbe —
 nie über Farbe allein.
 
-Kommt aus Figma ein Primärbutton in `#DDC6B6`, wird er auf `--action` gemappt und
+Kommt aus Figma ein Primärbutton in `#99E1D9`, wird er auf `--action` gemappt und
 die Abweichung im PR vermerkt.
 
 #### Milchglas
@@ -157,9 +169,9 @@ sieht, ist der Hintergrund durch den Schleier.
 | Rolle | Token | Deckkraft |
 |---|---|---|
 | Karte, Liste, Kalender | `--surface-glass` | `rgba(255,255,255,.18)` |
-| Kopfzeile, Fußnavigation | `--chrome-glass` | `rgba(238,227,218,.93)` |
-| Blatt | `--sheet-glass` | `rgba(242,233,226,.92)` |
-| Fläche hinter einem Blatt | `--backdrop-tint` + `--backdrop-blur` | `rgba(38,34,35,.55)`, 28 px |
+| Kopfzeile, Fußnavigation | `--chrome-glass` | `rgba(226,246,242,.93)` |
+| Blatt | `--sheet-glass` | `rgba(232,249,246,.92)` |
+| Fläche hinter einem Blatt | `--backdrop-tint` + `--backdrop-blur` | `rgba(50,41,47,.55)`, 28 px |
 
 **Was über dem Inhalt liegt, braucht mehr Deckkraft als eine Karte.** Eine Karte
 liegt auf dem Hintergrund; dahinter steht nichts, was ablenken könnte. Kopfzeile,
@@ -174,7 +186,7 @@ nicht auf dem Blatt selbst.
 
 Vier Regeln dazu:
 
-1. **`--surface` bleibt der Prüfmaßstab und steht weiter auf `#DDC6B6`.** Das
+1. **`--surface` ist der Prüfmaßstab und steht auf dem tiefsten Grundton.** Das
    ist der dunkelste Wert, den eine Scheibe annehmen kann — den Schleier
    weggedacht. Wer gegen diesen Wert besteht, besteht erst recht gegen das
    hellere Komposit. Nie gegen das Komposit rechnen: Was dahinter liegt, ist
@@ -235,8 +247,8 @@ Verstoß mit Exit-Code 1 ab und gehört in die CI.
 --shadow-tile;  --shadow-card;  --shadow-sheet;
 ```
 
-**Der Hintergrund ist ein Verlauf aus der Hauptfarbe:** `--bg-from` `#C7A98F`
-oben, `--bg-to` `#F2E6DC` unten. Prüfmaßstab für jeden Text, der direkt darauf
+**Der Hintergrund ist ein Verlauf aus der Hauptfarbe:** `--bg-from` `#7CC7BE`
+oben, `--bg-to` `#D7F2EE` unten. Prüfmaßstab für jeden Text, der direkt darauf
 steht, ist immer der **tiefere** Ton `--bg-from`. Die Richtung ist nicht
 beliebig — ein Verlauf, der heller läuft als die Flächen, macht jede Fläche zum
 Fleck.
