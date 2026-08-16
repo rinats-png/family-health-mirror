@@ -22,7 +22,14 @@ import {
   type Envelope,
 } from '../db/persistence';
 import { nowISO } from '../domain/dates';
-import { generateShareCode, mergeSharePayload, type SharePayload } from '../domain/share';
+import {
+  collectPayload,
+  generateShareCode,
+  mergeSharePayload,
+  payloadFingerprint,
+  type SharePayload,
+} from '../domain/share';
+import { isCloudConfigured, keyFor, pull, push, saltFor } from '../db/cloud';
 import type {
   AppState,
   Category,
@@ -124,6 +131,9 @@ type Collection =
 
 export type LockState = 'open' | 'locked' | 'unsupported';
 
+/** Zustand des Abgleichs für die Anzeige — bewusst grob gehalten. */
+export type CloudStatus = 'off' | 'idle' | 'busy' | 'error';
+
 interface StoreValue {
   state: AppState;
   ready: boolean;
@@ -144,6 +154,16 @@ interface StoreValue {
   ensureShareCode: (id: ID) => string;
   /** Führt ein eingelesenes Übergabepaket mit dem eigenen Bestand zusammen. */
   mergeShare: (payload: SharePayload) => void;
+
+  cloudAvailable: boolean;
+  cloudStatus: CloudStatus;
+  lastSyncAt?: string;
+  /** Schaltet den Abgleich für ein Kind ein und legt es sofort ab. */
+  enableCloudSync: (id: ID) => Promise<void>;
+  disableCloudSync: (id: ID) => void;
+  /** Holt ein Kind über seinen Code aus der Ablage. */
+  adoptFromCloud: (code: string) => Promise<number>;
+  syncNow: () => Promise<void>;
 
   add: <T extends { id: ID }>(collection: Collection, record: Omit<T, keyof SyncMeta | 'id'>) => T;
   update: (collection: Collection, id: ID, patch: Record<string, unknown>) => void;
@@ -208,6 +228,31 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     saveTimer.current = window.setTimeout(() => void persist(state), 250);
     return () => window.clearTimeout(saveTimer.current);
   }, [state, ready, lockState, persist]);
+
+  /*
+   * Wann abgeglichen wird: kurz nach einer Änderung, in ruhigen Abständen, und
+   * sobald die App wieder in den Vordergrund kommt. Der Abstand ist bewusst
+   * größer als das Speicherintervall — ein Abgleich kostet Netz und Akku, und
+   * zwei Elternteile tragen nicht im Sekundentakt ein.
+   */
+  useEffect(() => {
+    if (!ready || lockState === 'locked' || !isCloudConfigured()) return;
+    const soon = window.setTimeout(() => void syncRef.current(), 2500);
+    return () => window.clearTimeout(soon);
+  }, [state, ready, lockState]);
+
+  useEffect(() => {
+    if (!ready || lockState === 'locked' || !isCloudConfigured()) return;
+    const timer = window.setInterval(() => void syncRef.current(), 45_000);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') void syncRef.current();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [ready, lockState]);
 
   // Sofort sichern, wenn die Seite in den Hintergrund geht oder geschlossen wird.
   useEffect(() => {
@@ -341,16 +386,148 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  /*
+   * Abgleich über die Ablage.
+   *
+   * Ablauf je Kind: holen, zusammenführen, ablegen — in dieser Reihenfolge.
+   * Dadurch schickt jedes Gerät immer den bereits zusammengeführten Stand, und
+   * zwei Geräte laufen auch dann zusammen, wenn beide gleichzeitig geschrieben
+   * haben. Bei zwei Fassungen desselben Datensatzes gilt der zuletzt geänderte.
+   *
+   * Der abgeleitete Schlüssel wird zwischengespeichert: PBKDF2 mit 210 000
+   * Runden ist absichtlich teuer und darf nicht bei jedem Abgleich anfallen.
+   */
+  const cloudKeys = useRef(new Map<ID, { key: CryptoKey; salt: string }>());
+  const [cloudStatus, setCloudStatus] = useState<CloudStatus>('off');
+  const [lastSyncAt, setLastSyncAt] = useState<string | undefined>(undefined);
+
+  const keyMaterial = useCallback(async (childId: ID, code: string) => {
+    const cached = cloudKeys.current.get(childId);
+    if (cached) return cached;
+    const salt = await saltFor(code);
+    const material = { salt, key: await keyFor(code, salt) };
+    cloudKeys.current.set(childId, material);
+    return material;
+  }, []);
+
+  const syncChild = useCallback(
+    async (childId: ID) => {
+      const child = latest.current.children.find((c) => c.id === childId);
+      if (!child?.cloudSync || !child.shareCode) return;
+      const { key, salt } = await keyMaterial(childId, child.shareCode);
+
+      const remote = await pull(child.shareCode, key);
+      let base = latest.current;
+      if (remote) {
+        const merged = mergeSharePayload(base, remote.payload);
+        if (merged !== base) {
+          base = merged;
+          latest.current = merged;
+          setState((s) => (s === base ? s : mergeSharePayload(s, remote.payload)));
+        }
+      }
+
+      const mine = base.children.find((c) => c.id === childId);
+      if (!mine) return;
+      const payload = collectPayload(base, mine);
+      if (!remote || payloadFingerprint(remote.payload) !== payloadFingerprint(payload)) {
+        await push(child.shareCode, key, salt, payload);
+      }
+    },
+    [keyMaterial],
+  );
+
+  const syncNow = useCallback<StoreValue['syncNow']>(async () => {
+    if (!isCloudConfigured() || lockState === 'locked') return;
+    const ids = latest.current.children.filter((c) => c.cloudSync).map((c) => c.id);
+    if (ids.length === 0) {
+      setCloudStatus('off');
+      return;
+    }
+    setCloudStatus('busy');
+    try {
+      for (const id of ids) await syncChild(id);
+      setCloudStatus('idle');
+      setLastSyncAt(nowISO());
+    } catch {
+      // Kein Netz, Server nicht erreichbar, Chiffrat passt nicht: Der lokale
+      // Bestand bleibt unangetastet, der nächste Lauf versucht es erneut.
+      setCloudStatus('error');
+    }
+  }, [lockState, syncChild]);
+
+  const syncRef = useRef(syncNow);
+  syncRef.current = syncNow;
+
+  const enableCloudSync = useCallback<StoreValue['enableCloudSync']>(
+    async (id) => {
+      const code =
+        latest.current.children.find((c) => c.id === id)?.shareCode ?? generateShareCode();
+      setState((s) => ({
+        ...s,
+        children: s.children.map((c) =>
+          c.id === id ? { ...c, shareCode: code, cloudSync: true, updatedAt: nowISO() } : c,
+        ),
+      }));
+      latest.current = {
+        ...latest.current,
+        children: latest.current.children.map((c) =>
+          c.id === id ? { ...c, shareCode: code, cloudSync: true, updatedAt: nowISO() } : c,
+        ),
+      };
+      await syncRef.current();
+    },
+    [],
+  );
+
+  const disableCloudSync = useCallback<StoreValue['disableCloudSync']>((id) => {
+    cloudKeys.current.delete(id);
+    setState((s) => ({
+      ...s,
+      children: s.children.map((c) =>
+        c.id === id ? { ...c, cloudSync: false, updatedAt: nowISO() } : c,
+      ),
+    }));
+  }, []);
+
+  const adoptFromCloud = useCallback<StoreValue['adoptFromCloud']>(async (code) => {
+    const salt = await saltFor(code);
+    const key = await keyFor(code, salt);
+    const remote = await pull(code, key);
+    if (!remote) throw new Error('empty');
+    const childId = remote.payload.child.id;
+    cloudKeys.current.set(childId, { key, salt });
+    setState((s) => {
+      const merged = mergeSharePayload(s, remote.payload);
+      return {
+        ...merged,
+        children: merged.children.map((c) =>
+          c.id === childId ? { ...c, shareCode: code, cloudSync: true } : c,
+        ),
+        settings: { ...merged.settings, activeChildId: childId },
+      };
+    });
+    return remote.payload.entries?.length ?? 0;
+  }, []);
+
   const ensureShareCode = useCallback<StoreValue['ensureShareCode']>((id) => {
     const existing = latest.current.children.find((c) => c.id === id)?.shareCode;
     if (existing) return existing;
     const code = generateShareCode();
-    setState((s) => ({
+    const withCode = (s: AppState): AppState => ({
       ...s,
       children: s.children.map((c) =>
         c.id === id ? { ...c, shareCode: code, updatedAt: nowISO() } : c,
       ),
-    }));
+    });
+    setState(withCode);
+    /*
+     * `latest.current` wird sonst erst beim nächsten Rendern nachgezogen. Ein
+     * Aufruf, der unmittelbar danach den Code braucht — enableCloudSync tut das
+     * — fände dort noch keinen und erzeugte einen zweiten. Die Oberfläche zeigte
+     * dann den einen, abgelegt würde unter dem anderen.
+     */
+    latest.current = withCode(latest.current);
     return code;
   }, []);
 
@@ -411,12 +588,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       unlock, enableLock, disableLock,
       setActiveChild, addChild, updateChild, removeChild, clearChildData,
       ensureShareCode, mergeShare,
+      cloudAvailable: isCloudConfigured(), cloudStatus, lastSyncAt,
+      enableCloudSync, disableCloudSync, adoptFromCloud, syncNow,
       add, update, remove, updateSettings, replaceState, resetAll,
     }),
     [
       state, ready, lockState, activeChild, unlock, enableLock, disableLock,
       setActiveChild, addChild, updateChild, removeChild, clearChildData,
-      ensureShareCode, mergeShare,
+      ensureShareCode, mergeShare, cloudStatus, lastSyncAt,
+      enableCloudSync, disableCloudSync, adoptFromCloud, syncNow,
       add, update, remove, updateSettings, replaceState, resetAll,
     ],
   );

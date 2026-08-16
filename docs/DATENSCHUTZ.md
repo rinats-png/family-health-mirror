@@ -68,7 +68,22 @@ Richten Sie in den Einstellungen die App-Sperre mit einem Passwort ein, werden d
 
 *(Für die native Fassung mit optionaler Sicherung über iCloud bzw. Google Drive: Die Sicherung erfolgt in **Ihr** Konto beim jeweiligen Anbieter und ist Ende-zu-Ende verschlüsselt. Für die Verarbeitung in Ihrem eigenen Konto gilt die Datenschutzerklärung des jeweiligen Anbieters: [Links ergänzen].)*
 
-### 7.1 Ein Kind zu zweit führen
+### 7.1 Abgleich zwischen zwei Geräten
+
+Sie können die Aufzeichnungen zu einem Kind mit einer zweiten Person teilen, etwa dem anderen Elternteil. Dafür gibt es zwei Wege.
+
+**Abgleich über eine Ablage (Voreinstellung, wenn Sie ihn einschalten).** Neue Einträge gehen von selbst auf beide Geräte.
+
+* Gespeichert wird ausschließlich **verschlüsselter Text** (AES-GCM 256) und eine **Kennung**, die sich als Einwegfunktion aus dem Kindcode errechnet. Kein Rufname, kein Geburtsdatum, keine Notiz, kein Messwert, kein Foto im Klartext.
+* Der Schlüssel wird auf Ihrem Gerät aus dem Kindcode abgeleitet. **Der Code verlässt Ihr Gerät nie.** Der Betreiber der Ablage kann die Inhalte nicht lesen.
+* Serverstandort: Frankfurt am Main (`eu-central-1`).
+* Es gibt kein Konto, keine E-Mail-Adresse und keine Anmeldung.
+* Sie können den Abgleich jederzeit ausschalten. Die Aufzeichnungen auf Ihrem Gerät bleiben davon unberührt.
+* **Offen bis zur Marktbereitstellung:** Vertrag zur Auftragsverarbeitung nach Art. 28 DSGVO, Löschfunktion für abgelegte Daten und eine Aufbewahrungsfrist. Bis dahin ist die Anwendung ein Prototyp.
+
+**Weitergabe als Datei (ohne Netz).** Statt der Ablage können Sie eine verschlüsselte Datei erzeugen und selbst weitergeben.
+
+### 7.2 Ein Kind als Datei weitergeben
 
 Sie können die Aufzeichnungen zu einem Kind an eine zweite Person weitergeben, etwa den anderen Elternteil. Dazu erzeugt die App eine Datei und einen alphanumerischen Code.
 

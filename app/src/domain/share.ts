@@ -16,19 +16,19 @@ import type {
 /**
  * Ein Kind zu zweit führen (Aufgabenstellung Abschnitt 8).
  *
- * Der Weg ist bewusst NICHT ein Server. Die Anwendung hat keinen Endpunkt, an
- * den Gesundheitsdaten eines Kindes gehen könnten, und soll auch keinen
- * bekommen. Stattdessen erzeugt das eine Gerät ein verschlüsseltes Paket, das
- * der Nutzer selbst weitergibt — über den Weg, den er ohnehin vertraut:
- * Messenger, Mail, Dateiablage, USB-Stick.
+ * Zwei Wege, dieselbe Nutzlast und dieselbe Zusammenführung:
  *
- * Daraus folgt die wichtigste Eigenschaft und zugleich die Grenze: Das ist ein
- * Abgleich zu einem Zeitpunkt, keine laufende Synchronisierung. Wer neue
- * Einträge übernehmen will, tauscht erneut ein Paket aus. Dafür funktioniert
- * es offline, ohne Konto und ohne dass irgendwo eine Kopie liegen bleibt.
+ *   Datei   Ein verschlüsseltes Paket, das der Nutzer selbst weitergibt.
+ *           Funktioniert ohne Netz und ohne Beteiligung Dritter, ist aber ein
+ *           Abgleich zu einem Zeitpunkt.
+ *   Ablage  Automatischer Abgleich über einen Server (siehe db/cloud.ts).
+ *           Bequem genug für den Alltag — der Dateiweg wurde dafür zu selten
+ *           benutzt, um zwei Elternteile tatsächlich auf demselben Stand zu
+ *           halten.
  *
- * Der Code ist zugleich Kennung und Geheimnis: Aus ihm wird per PBKDF2 der
- * Schlüssel des Pakets abgeleitet. Ohne Code ist die Datei nicht lesbar.
+ * In beiden Fällen verlässt nur Chiffrat das Gerät. Der Code ist zugleich
+ * Kennung und Geheimnis: Aus ihm wird per PBKDF2 der Schlüssel abgeleitet.
+ * Ohne Code sind weder Datei noch Ablage lesbar.
  */
 
 /**
@@ -93,14 +93,9 @@ function forChild(state: AppState, childId: ID) {
   };
 }
 
-export async function buildSharePackage(
-  state: AppState,
-  child: Child,
-  code: string,
-): Promise<SharePackage> {
-  const salt = randomSalt();
-  const key = await deriveKey(normalizeShareCode(code), salt);
-  const payload: SharePayload = {
+/** Alles, was zu diesem Kind gehört — die Nutzlast für Datei wie Cloud. */
+export function collectPayload(state: AppState, child: Child): SharePayload {
+  return {
     child,
     // Die Kategorien kommen mit, sonst stünde beim zweiten Gerät ein Eintrag
     // ohne Kachel und ohne Farbe.
@@ -108,6 +103,16 @@ export async function buildSharePackage(
     ...forChild(state, child.id),
     tombstones: state.tombstones,
   };
+}
+
+export async function buildSharePackage(
+  state: AppState,
+  child: Child,
+  code: string,
+): Promise<SharePackage> {
+  const salt = randomSalt();
+  const key = await deriveKey(normalizeShareCode(code), salt);
+  const payload = collectPayload(state, child);
   return {
     kind: SHARE_KIND,
     version: SHARE_VERSION,
@@ -174,6 +179,46 @@ function applyTombstones<T extends Versioned>(records: T[], graves: Map<ID, stri
   });
 }
 
+/**
+ * Kurzfassung eines Bestands: Kennung und Änderungszeitpunkt je Datensatz.
+ *
+ * Zwei Zwecke. Erstens erkennt der Abgleich daran, ob überhaupt etwas zu
+ * schicken ist. Zweitens — und wichtiger — gibt `mergeSharePayload` denselben
+ * Zustand zurück, wenn sich nichts geändert hat: Ohne das würde jede
+ * Zusammenführung einen neuen Zustand erzeugen, React neu rendern, den nächsten
+ * Abgleich auslösen und so fort.
+ */
+export function payloadFingerprint(p: SharePayload): string {
+  const ids = (records: { id: ID; updatedAt: string }[]) =>
+    records
+      .map((r) => `${r.id}@${r.updatedAt}`)
+      .sort()
+      .join(',');
+  return [
+    ids([p.child]),
+    ids(p.categories ?? []),
+    ids(p.entries ?? []),
+    ids(p.measurements ?? []),
+    ids(p.reminders ?? []),
+    ids(p.vaccinations ?? []),
+    ids(p.passPhotos ?? []),
+    (p.tombstones ?? []).map((t) => `${t.id}@${t.at}`).sort().join(','),
+  ].join('|');
+}
+
+function stateFingerprint(s: AppState): string {
+  return payloadFingerprint({
+    child: s.children[0] ?? ({ id: '', updatedAt: '' } as Child),
+    categories: s.categories,
+    entries: s.entries,
+    measurements: s.measurements,
+    reminders: s.reminders,
+    vaccinations: s.vaccinations,
+    passPhotos: s.passPhotos,
+    tombstones: s.tombstones,
+  }) + '|' + s.children.map((c) => `${c.id}@${c.updatedAt}`).sort().join(',');
+}
+
 export function mergeSharePayload(state: AppState, payload: SharePayload): AppState {
   const tombstones = mergeTombstones(state.tombstones, payload.tombstones ?? []);
   const graves = new Map(tombstones.map((t) => [t.id, t.at]));
@@ -190,13 +235,23 @@ export function mergeSharePayload(state: AppState, payload: SharePayload): AppSt
     tombstones,
   };
 
-  return {
+  const next: AppState = {
     ...merged,
     settings: {
       ...merged.settings,
       activeChildId: merged.settings.activeChildId ?? payload.child.id,
     },
   };
+
+  // Nichts geändert: denselben Zustand zurückgeben, damit React nicht rendert
+  // und der Abgleich sich nicht selbst erneut auslöst.
+  if (
+    stateFingerprint(next) === stateFingerprint(state) &&
+    next.settings.activeChildId === state.settings.activeChildId
+  ) {
+    return state;
+  }
+  return next;
 }
 
 /** Zählt, was durch das Zusammenführen dazugekommen ist — für die Rückmeldung. */

@@ -62,17 +62,19 @@ mit einem Eintrag, längste Folge aufeinanderfolgender solcher Tage, erster und
 letzter Eintrag. Keine Zusammenfassung zu Episoden, keine Schwellenwerte.
 
 **Ein Kind zu zweit führen.** Jedes Kind bekommt auf Wunsch einen
-alphanumerischen Code. Damit erzeugt die App ein verschlüsseltes Übergabepaket,
-das die zweite Person einliest — danach führen beide Geräte dasselbe Kind.
-Erneutes Einlesen führt zusammen statt zu verdoppeln; gelöschte Einträge bleiben
-gelöscht. Ohne Server: Den Übertragungsweg wählt der Nutzer selbst, und es ist
-ein Abgleich zu einem Zeitpunkt, keine laufende Synchronisierung.
+alphanumerischen Code. Wer ihn kennt, sieht dasselbe Kind: Neue Einträge gehen
+von selbst auf beide Geräte. Abgelegt wird ausschließlich Chiffrat und eine
+Kennung, die sich aus dem Code errechnet — der Code selbst verlässt das Gerät
+nie, und der Betreiber der Ablage kann die Inhalte nicht lesen. Bei zwei
+Fassungen desselben Eintrags gilt die zuletzt geänderte; gelöschte Einträge
+bleiben gelöscht. Ohne Netz geht es weiterhin über eine verschlüsselte Datei.
 
 **Export.** PDF mit Rohdatentabellen und der Kopfzeile „Elterngeführte
 Dokumentation. Keine ärztliche Bewertung." Dazu JSON und CSV.
 
-**Technik.** Local-first, kein Konto, kein Server, keine Werbung, keine
-Tracking-Bausteine. Offline vollständig nutzbar. Deutsch und Englisch. Auf Wunsch
+**Technik.** Local-first, kein Konto, keine Werbung, keine Tracking-Bausteine.
+Der einzige Netzwerkaufruf ist der Abgleich, und der ist Ende-zu-Ende
+verschlüsselt und abschaltbar. Offline vollständig nutzbar. Deutsch und Englisch. Auf Wunsch
 App-Sperre mit Passwort und AES-GCM-Verschlüsselung auf dem Gerät.
 
 ## Was bewusst fehlt

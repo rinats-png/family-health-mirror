@@ -37,6 +37,8 @@ export interface Child extends SyncMeta {
    * aus dem der Schlüssel des Übergabepakets abgeleitet wird.
    */
   shareCode?: string;
+  /** Abgleich über die Ablage aktiv. Ohne Code nicht möglich. */
+  cloudSync?: boolean;
   /** Nur für die Auswahl der geschlechtsspezifischen Referenzkurve. */
   sex?: Sex;
   /** Data-URL, bleibt auf dem Gerät. */

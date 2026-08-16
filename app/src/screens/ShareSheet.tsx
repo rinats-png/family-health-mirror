@@ -28,16 +28,20 @@ import { Sheet } from '../ui/Sheet';
  */
 export function ShareSheet({ child, onClose }: { child: Child; onClose: () => void }) {
   const { t, locale } = useI18n();
-  const { state, ensureShareCode, mergeShare } = useStore();
+  const {
+    state, ensureShareCode, mergeShare,
+    cloudAvailable, cloudStatus, lastSyncAt, enableCloudSync, disableCloudSync, adoptFromCloud,
+  } = useStore();
   const [mode, setMode] = useState<'give' | 'take'>('give');
   const [code, setCode] = useState('');
   const [codeInput, setCodeInput] = useState('');
   const [pending, setPending] = useState<SharePackage | null>(null);
   const [status, setStatus] = useState<{ kind: 'ok' | 'error'; text: string } | null>(null);
+  const [busy, setBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const live = state.children.find((c) => c.id === child.id) ?? child;
-  const shown = code || live.shareCode || '';
+  const shown = live.shareCode || code || '';
 
   const reveal = () => setCode(ensureShareCode(live.id));
 
@@ -112,9 +116,63 @@ export function ShareSheet({ child, onClose }: { child: Child; onClose: () => vo
             <p className="small muted" style={{ marginTop: 6 }}>{t('shareCodeHint')}</p>
           </div>
 
+          {cloudAvailable && (
+            <div className="field">
+              <span className="field__label">{t('cloudSection')}</span>
+              {live.cloudSync ? (
+                <>
+                  <div className="note note--info" style={{ marginBottom: 'var(--space-2)' }}>
+                    {cloudStatus === 'busy'
+                      ? t('cloudBusy')
+                      : cloudStatus === 'error'
+                        ? t('cloudError')
+                        : t('cloudOn')}
+                    {lastSyncAt && cloudStatus !== 'busy' && (
+                      <>
+                        {' '}
+                        {t('cloudLast')}: {formatDateTimeShort(lastSyncAt, locale)}
+                      </>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn--block"
+                    onClick={() => disableCloudSync(live.id)}
+                  >
+                    {t('cloudDisable')}
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn--primary btn--block"
+                  disabled={busy}
+                  onClick={async () => {
+                    setBusy(true);
+                    setStatus(null);
+                    try {
+                      setCode(ensureShareCode(live.id));
+                      await enableCloudSync(live.id);
+                    } catch {
+                      setStatus({ kind: 'error', text: t('cloudError') });
+                    } finally {
+                      setBusy(false);
+                    }
+                  }}
+                >
+                  {t('cloudEnable')}
+                </button>
+              )}
+              <p className="small muted" style={{ marginTop: 6 }}>{t('cloudHint')}</p>
+            </div>
+          )}
+
+          <div className="section__title" style={{ marginTop: 'var(--space-4)' }}>
+            {t('cloudOffline')}
+          </div>
           <button
             type="button"
-            className="btn btn--primary btn--block"
+            className="btn btn--ghost btn--block"
             onClick={() => void makePackage()}
           >
             {t('sharePackage')}
@@ -123,6 +181,52 @@ export function ShareSheet({ child, onClose }: { child: Child; onClose: () => vo
         </>
       ) : (
         <>
+          {cloudAvailable && (
+            <>
+              <div className="field">
+                <label className="field__label" htmlFor="cloud-code">{t('shareEnterCode')}</label>
+                <input
+                  id="cloud-code"
+                  className="input tabular"
+                  autoCapitalize="characters"
+                  autoComplete="off"
+                  spellCheck={false}
+                  placeholder="XXXX-XXXX-XXXX-XXXX"
+                  value={codeInput}
+                  onChange={(e) => setCodeInput(e.target.value)}
+                />
+              </div>
+              <button
+                type="button"
+                className="btn btn--primary btn--block"
+                disabled={busy || normalizeShareCode(codeInput).length < 8}
+                onClick={async () => {
+                  setBusy(true);
+                  setStatus(null);
+                  try {
+                    const taken = await adoptFromCloud(codeInput);
+                    setStatus({ kind: 'ok', text: `${t('cloudConnected')} ${taken}` });
+                    setCodeInput('');
+                  } catch (error) {
+                    setStatus({
+                      kind: 'error',
+                      text: (error as Error).message === 'empty' ? t('cloudEmpty') : t('cloudError'),
+                    });
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
+              >
+                {t('cloudAdopt')}
+              </button>
+              <p className="small muted" style={{ marginTop: 'var(--space-2)' }}>{t('cloudHint')}</p>
+
+              <div className="section__title" style={{ marginTop: 'var(--space-5)' }}>
+                {t('cloudOffline')}
+              </div>
+            </>
+          )}
+
           <div className="field">
             <label className="field__label" htmlFor="share-file">{t('shareFile')}</label>
             <input

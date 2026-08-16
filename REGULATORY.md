@@ -66,7 +66,7 @@ Eine Auszählung dessen, was der Nutzer selbst angelegt hat („17 Einträge im 
 | Messwerte | Gewicht, Länge, Kopfumfang; Darstellung auf wählbarer Referenzkurve; neutraler Perzentilwert | Grenzbereich, siehe 5.1. |
 | Impfungen | Manuelle Liste, Fotos des Impfpasses, PDF-Ausgabe | keine. Siehe 3/7. |
 | Export | PDF (Rohdatentabellen), JSON, CSV | keine. Siehe 5.2. |
-| Weitergabe | Verschlüsseltes Übergabepaket je Kind plus alphanumerischer Code; Zusammenführen auf dem zweiten Gerät | keine. Übertragen wird ausschließlich, was der Nutzer eingetragen hat. Kein Server, keine dauerhafte Verbindung. |
+| Weitergabe | Abgleich zweier Geräte über eine verschlüsselte Ablage, wahlweise Übergabe als Datei; je Kind ein alphanumerischer Code | keine. Übertragen wird ausschließlich, was der Nutzer eingetragen hat. Siehe 5.6. |
 
 ## 5. Einzelbegründungen für die Grenzbereiche
 
@@ -123,6 +123,26 @@ Die Einschränkungen stehen als Kommentar im Kopf von `app/src/ui/HistoryChart.t
 
 Die Einschränkungen stehen als Kommentar im Kopf von `app/src/domain/summary.ts`.
 
+### 5.6 Abgleich über eine Ablage
+
+**Was sich gegenüber dem ursprünglichen Stand geändert hat:** Die Aufgabenstellung schloss einen eigenen Server aus. Die Umsetzung ohne Server — ein Paket als Datei weitergeben — hat sich als praxisfern erwiesen: Zwei Elternteile halten einen Bestand nicht auf demselben Stand, wenn dafür regelmäßig eine Datei ausgetauscht werden muss. Auf Entscheidung des Auftraggebers gibt es deshalb einen Abgleich über eine Ablage. Der Dateiweg bleibt daneben bestehen.
+
+**Wie die Zweckbestimmung dadurch berührt wird: gar nicht.** Übertragen wird ausschließlich, was der Nutzer eingegeben hat. Es findet keine Verarbeitung auf dem Server statt — keine Auswertung, keine Zusammenführung über mehrere Nutzer, keine Statistik. Die Ablage speichert und gibt zurück, mehr nicht.
+
+**Was die Ablage sieht:**
+
+| Feld | Inhalt |
+|---|---|
+| `sync_id` | SHA-256 über den Kindcode. Undurchsichtig, kein Rückschluss auf den Code. |
+| `payload` | Chiffrat (AES-GCM 256) samt Salz und Initialisierungsvektor. |
+| `updated_at` | Zeitpunkt der letzten Ablage. |
+
+Kein Rufname, kein Geburtsdatum, keine Notiz, kein Messwert, kein Foto — nichts davon im Klartext. Der Schlüssel wird auf dem Gerät per PBKDF2-SHA-256 (210 000 Runden) aus dem Kindcode abgeleitet; der Code verlässt das Gerät nie. Kennung und Schlüssel stammen aus **verschiedenen** Ableitungen: Wer die Kennung kennt, kommt dem Schlüssel damit nicht näher.
+
+Die Tabelle ist für den öffentlichen Schlüssel gesperrt (Row Level Security ohne Richtlinie). Zugriff gibt es ausschließlich über zwei Funktionen, die immer nur genau eine Zeile herausgeben — die Kennung muss man also bereits kennen. Ein Abzug der gesamten Tabelle ist damit nicht möglich.
+
+**Was daraus folgt und offen ist:** Der Betreiber der Ablage ist Auftragsverarbeiter nach Art. 28 DSGVO, auch wenn er die Inhalte nicht lesen kann. Siehe Abschnitt 7, Punkte 6 und 7.
+
 ## 6. Sprachregeln
 
 Die Wortliste aus der Aufgabenstellung ist maschinell durchgesetzt: `npm run check:wording` prüft alle Oberflächen- und Store-Texte in beiden Sprachen gegen verbotene Begriffe und bricht bei einem Treffer ab. Der Lauf gehört in die CI.
@@ -145,6 +165,12 @@ Die Regeln gelten für App-Texte, Store-Beschreibung, Website, Screenshots und M
 | 6 | **Juristische Prüfung** dieser Abgrenzung durch eine auf MDR spezialisierte Kanzlei, mit Bezug auf MDCG 2019-11 Rev. 1 (Juni 2025), Abschnitt zur Qualifizierung von Software. | **Offen — blockierend.** | — |
 | 7 | **Datenschutz-Folgenabschätzung** nach Art. 35 DSGVO. | **Offen.** Siehe `docs/DATENSCHUTZ.md`. | — |
 | 8 | **Verschlüsselung**: Die Web-Fassung verschlüsselt bei aktivierter App-Sperre mit AES-GCM. Für die native Fassung ist SQLCipher vorgesehen; dann ist die Verschlüsselung nicht mehr optional. | Offen für die native Fassung. | — |
+
+6. **Auftragsverarbeitungsvertrag mit dem Betreiber der Ablage** nach Art. 28 DSGVO — blockierend, sobald die Anwendung außerhalb des eigenen Haushalts genutzt wird. Der Serverstandort ist Frankfurt (`eu-central-1`); ein Drittlandtransfer ist damit nicht Gegenstand, die Konzernzugehörigkeit des Anbieters ist zu prüfen.
+7. **Datenschutz-Folgenabschätzung erweitern:** Punkt 5 betraf die rein lokale Fassung. Mit der Ablage kommt eine Übermittlung hinzu — auch verschlüsselt bleibt sie eine Verarbeitung besonderer Kategorien nach Art. 9 DSGVO.
+8. **Aufbewahrung und Löschung in der Ablage:** Derzeit bleibt eine Zeile liegen, bis sie überschrieben wird. Vor Marktbereitstellung sind eine Löschfunktion in der Oberfläche und eine Frist für verwaiste Zeilen festzulegen.
+9. **Missbrauchsschutz:** Die Funktionen sind ohne Konto aufrufbar. Vor Marktbereitstellung sind Ratenbegrenzung und eine Obergrenze je Kennung einzurichten; die Größenbegrenzung von 8 MB je Ablage ist gesetzt.
+
 
 ## 8. Zielmärkte
 
