@@ -17,7 +17,9 @@ import {
   weightToDisplay,
 } from '../domain/units';
 import { useActions, useStore } from '../store/store';
-import type { Child, MeasurementKind } from '../domain/types';
+import type { Child, Measurement, MeasurementKind } from '../domain/types';
+import { DateField } from '../ui/DateField';
+import { Sheet } from '../ui/Sheet';
 import { GrowthChart, type ChartPoint } from '../ui/GrowthChart';
 
 const KINDS: MeasurementKind[] = ['weight', 'length', 'headCircumference'];
@@ -32,11 +34,12 @@ const KINDS: MeasurementKind[] = ['weight', 'length', 'headCircumference'];
 export function Measurements({ child }: { child: Child }) {
   const { t, locale } = useI18n();
   const { state, updateSettings } = useStore();
-  const { addMeasurement, removeMeasurement } = useActions();
+  const { addMeasurement, updateMeasurement, removeMeasurement } = useActions();
 
   const [kind, setKind] = useState<MeasurementKind>('weight');
   const [value, setValue] = useState('');
   const [date, setDate] = useState(todayISO());
+  const [editing, setEditing] = useState<Measurement | null>(null);
 
   const { weightUnit, lengthUnit, pro } = state.settings;
   const reference = referenceById(state.settings.growthReferenceId);
@@ -113,14 +116,13 @@ export function Measurements({ child }: { child: Child }) {
             />
             <span className="tile__value" style={{ margin: 0, fontSize: 17 }}>{unit}</span>
           </div>
-          <input
-            className="input"
-            type="date"
+          <DateField
             style={{ marginTop: 'var(--space-2)' }}
             value={date}
+            min={child.birthDate}
             max={todayISO()}
-            aria-label={t('date')}
-            onChange={(e) => setDate(e.target.value)}
+            label={t('date')}
+            onCommit={setDate}
           />
           <button
             type="button"
@@ -235,16 +237,22 @@ export function Measurements({ child }: { child: Child }) {
           <div className="list">
             {[...measurements].reverse().map((m) => (
               <div key={m.id} className="list-item">
-                <div className="list-item__main">
+                <button
+                  type="button"
+                  className="list-item__main"
+                  style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left' }}
+                  aria-label={`${t('measurementEdit')}: ${formatDateShort(m.date, locale)}`}
+                  onClick={() => setEditing(m)}
+                >
                   <div className="list-item__title tabular">
                     {formatNumber(toDisplay(m.value))} {unit}
                   </div>
                   <div className="list-item__meta">{formatDateShort(m.date, locale)}</div>
-                </div>
+                </button>
                 <button
                   type="button"
                   className="btn btn--sm btn--ghost"
-                  aria-label={t('delete')}
+                  aria-label={`${t('delete')}: ${formatDateShort(m.date, locale)}`}
                   onClick={() => removeMeasurement(m.id)}
                 >
                   ✕
@@ -254,6 +262,85 @@ export function Measurements({ child }: { child: Child }) {
           </div>
         )}
       </section>
+
+      {editing && (
+        <MeasurementSheet
+          measurement={editing}
+          child={child}
+          onClose={() => setEditing(null)}
+          onSave={(patch) => {
+            updateMeasurement(editing.id, patch);
+            setEditing(null);
+          }}
+        />
+      )}
     </>
+  );
+}
+
+/** Bearbeiten eines bereits eingetragenen Messwerts: Wert und Datum. */
+function MeasurementSheet({
+  measurement,
+  child,
+  onClose,
+  onSave,
+}: {
+  measurement: Measurement;
+  child: Child;
+  onClose: () => void;
+  onSave: (patch: Partial<Measurement>) => void;
+}) {
+  const { t, locale } = useI18n();
+  const { state } = useStore();
+  const { weightUnit, lengthUnit } = state.settings;
+  const unit = measurement.kind === 'weight' ? weightUnit : lengthUnit;
+  const shown =
+    measurement.kind === 'weight'
+      ? weightToDisplay(measurement.value, weightUnit)
+      : lengthToDisplay(measurement.value, lengthUnit);
+
+  const [value, setValue] = useState(formatNumber(shown));
+  const [date, setDate] = useState(measurement.date);
+  const parsed = parseDecimal(value);
+
+  return (
+    <Sheet open onClose={onClose} title={t('measurementEdit')}>
+      <div className="field">
+        <label className="field__label" htmlFor="ms-value">
+          {measurementLabel(measurement.kind, locale)} ({unit})
+        </label>
+        <input
+          id="ms-value"
+          className="input tabular"
+          type="text"
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+      </div>
+      <div className="field">
+        <label className="field__label" htmlFor="ms-date">{t('date')}</label>
+        <DateField
+          id="ms-date"
+          value={date}
+          min={child.birthDate}
+          max={todayISO()}
+          onCommit={setDate}
+        />
+      </div>
+      <button
+        type="button"
+        className="btn btn--primary btn--block"
+        disabled={parsed == null}
+        onClick={() =>
+          onSave({
+            date,
+            value: valueFromInput(measurement.kind, parsed!, weightUnit, lengthUnit),
+          })
+        }
+      >
+        {t('save')}
+      </button>
+    </Sheet>
   );
 }

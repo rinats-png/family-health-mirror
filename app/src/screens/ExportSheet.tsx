@@ -10,6 +10,7 @@ import {
 } from '../domain/units';
 import { useStore } from '../store/store';
 import type { Child, MeasurementKind } from '../domain/types';
+import { DateField } from '../ui/DateField';
 import { Sheet } from '../ui/Sheet';
 import { buildGrowthChartSvg } from '../ui/GrowthChart';
 
@@ -64,22 +65,8 @@ export function ExportSheet({ child, onClose }: { child: Child; onClose: () => v
       <div className="field">
         <span className="field__label">{t('exportRange')}</span>
         <div className="row">
-          <input
-            className="input"
-            type="date"
-            value={from}
-            max={to}
-            aria-label={t('filterFrom')}
-            onChange={(e) => setFrom(e.target.value)}
-          />
-          <input
-            className="input"
-            type="date"
-            value={to}
-            max={todayISO()}
-            aria-label={t('filterTo')}
-            onChange={(e) => setTo(e.target.value)}
-          />
+          <DateField value={from} max={to} label={t('filterFrom')} onCommit={setFrom} />
+          <DateField value={to} max={todayISO()} label={t('filterTo')} onCommit={setTo} />
         </div>
       </div>
 

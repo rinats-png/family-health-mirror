@@ -111,8 +111,8 @@ Text. Daraus ergibt sich keine Abschwächung der Marke, sondern eine Rollentrenn
 | Sekundärtext darauf | `--brand-muted` | `#54443A` | 5,66:1 auf `--brand` |
 | Kante von Flächen | `--brand-line` | `#6B5039` | 4,53:1 — trägt die Abgrenzung allein |
 | Trennlinie | `--brand-strong` | `#BC9C82` | Kante der Marken-Flächen |
-| Karte, Blatt | `--surface` | `#DDC6B6` | Hauptfarbe unverändert — kein Tonschritt |
-| Erhabene Fläche | `--surface-2` | `#E4D2C5` | Symbolkreise, aktive Pille, Eingabefelder — heller als die Karte |
+| Karte, Blatt | `--surface` | `#DDC6B6` | Prüfmaßstab; die Fläche selbst ist Milchglas |
+| Erhabene Fläche | `--surface-2` | `#EDE0D6` | Symbolkreise, aktive Pille, Eingabefelder — deckend, heller als die Scheibe |
 | Handlung | `--action` | `#0D4353` | Buttons, Auswahlzustände, Fokusring |
 | Akzent | `--accent` | `#65ABC4` | Diagramme, Ränder — **nie** als Textfarbe (2,38:1) |
 
@@ -129,7 +129,7 @@ Karte, Kopfzeilen-Pille, Fußnavigation und jeder Symbolkreis bekommt
 verschwindet bei Sonnenlicht.
 
 Bedienelemente sind davon ausgenommen: Eingabefelder, Chips, Kalendertage und
-die aktive Tab-Pille liegen auf `--surface-2` (`#E4D2C5`) und heben sich damit
+die aktive Tab-Pille liegen auf `--surface-2` (`#EDE0D6`) und heben sich damit
 zusätzlich zur Kante ab. Sie sind antippbar, Flächen nicht.
 
 **Aktiver Zustand in der Fußnavigation** unterscheidet sich über eine gefüllte
@@ -139,20 +139,33 @@ nie über Farbe allein.
 Kommt aus Figma ein Primärbutton in `#DDC6B6`, wird er auf `--action` gemappt und
 die Abweichung im PR vermerkt.
 
-#### Glas: halbtransparente Flächen
+#### Milchglas
 
-Karten, Kopfzeile, Fußnavigation und Blätter sind halbtransparent mit
-`backdrop-filter`. Drei Regeln dazu:
+Karten, Blätter, Kopfzeile, Fußnavigation, gruppierte Listen und der Kalender
+sind Milchglas: ein heller Schleier über dem, was dahinter liegt, plus
+`backdrop-filter: blur(24px)`. Sie tragen **keine eigene Farbe** — was man
+sieht, ist der Hintergrund durch den Schleier.
 
-1. **`--surface` ist der solide Wert und zugleich der Prüfmaßstab.** Das
-   Weil Fläche und Hintergrund denselben Wert tragen, ist das Komposit mit
-   dem soliden Wert identisch — die Deckkraft verändert die Farbe nicht mehr,
-   nur noch die Unschärfe dahinter.
-2. **Kopfzeile und Fußnavigation nutzen `--chrome-glass` mit höherer Deckkraft**
-   (0,88 statt 0,72). Dahinter scrollt Inhalt durch; bei niedriger Deckkraft
-   könnte dunkler Text darunter das Komposit lokal absenken.
-3. **Eingabefelder bleiben deckend.** Unschärfe hinter getipptem Text macht das
-   Lesen schwerer, und genau dort zählt Genauigkeit.
+| Rolle | Token | Wert | Komposit über dem Hintergrund |
+|---|---|---|---|
+| Scheibe | `--surface-glass` | `rgba(255,255,255,.18)` | `#E2D0C3` |
+| Kopfzeile, Fußnavigation | `--chrome-glass` | `rgba(255,255,255,.40)` | `#EADCD2` |
+
+Vier Regeln dazu:
+
+1. **`--surface` bleibt der Prüfmaßstab und steht weiter auf `#DDC6B6`.** Das
+   ist der dunkelste Wert, den eine Scheibe annehmen kann — den Schleier
+   weggedacht. Wer gegen diesen Wert besteht, besteht erst recht gegen das
+   hellere Komposit. Nie gegen das Komposit rechnen: Was dahinter liegt, ist
+   nicht vorhersagbar.
+2. **Kopfzeile und Fußnavigation nehmen den dichteren Schleier.** Dahinter
+   scrollt Inhalt durch; bei dünnem Schleier bliebe dunkler Text lesbar und
+   würde die Beschriftung stören.
+3. **Eingabefelder bleiben deckend** auf `--surface-2`. Unschärfe hinter
+   getipptem Text macht das Lesen schwerer, und genau dort zählt Genauigkeit.
+4. **Unschärfe wird nicht geschachtelt.** Eine Zeile in einer gruppierten Liste
+   schaltet `backdrop-filter` ab — die Karte darüber bringt sie schon mit,
+   sonst wirkt jede Zeile als eigene Scheibe.
 
 Eine Fläche aus Glas grenzt sich nie über die Füllung ab — immer über
 `--brand-line`.

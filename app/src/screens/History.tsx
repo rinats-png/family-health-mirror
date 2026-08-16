@@ -3,6 +3,7 @@ import { useI18n } from '../i18n';
 import { categoryLabel, visibleCategories } from '../domain/categories';
 import {
   addDays,
+  atOnDay,
   dayOf,
   formatDateShort,
   formatTime,
@@ -13,7 +14,7 @@ import {
   weekdayNames,
 } from '../domain/dates';
 import { celsiusToDisplay, formatNumber } from '../domain/units';
-import { useStore } from '../store/store';
+import { useActions, useStore } from '../store/store';
 import type { Child, Entry, ISODate } from '../domain/types';
 
 /**
@@ -33,6 +34,7 @@ export function History({
 }) {
   const { t, locale } = useI18n();
   const { state } = useStore();
+  const { addEntry } = useActions();
 
   const [cursor, setCursor] = useState(() => {
     const d = parseDate(todayISO());
@@ -242,6 +244,27 @@ export function History({
       {selected && (
         <section className="section">
           <div className="section__title">{formatDateShort(selected, locale)}</div>
+          {/* Ein Nachtrag entstand bisher immer mit dem heutigen Zeitstempel und
+              musste danach im Blatt umdatiert werden. Aus dem Kalender heraus
+              steht der Tag schon fest. */}
+          <button
+            type="button"
+            className="btn btn--ghost btn--block"
+            style={{ marginBottom: 'var(--space-3)' }}
+            onClick={() =>
+              onOpenEntry(
+                addEntry({
+                  childId: child.id,
+                  at: atOnDay(selected),
+                  categoryIds: [],
+                  tags: [],
+                  temperatureUnit: state.settings.temperatureUnit,
+                }),
+              )
+            }
+          >
+            + {t('addEntryOnDay')}
+          </button>
           {dayEntries.length === 0 ? (
             <div className="empty">{t('noEntriesOnDay')}</div>
           ) : (

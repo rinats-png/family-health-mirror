@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useI18n } from '../i18n';
 import { todayISO } from '../domain/dates';
 import { useStore } from '../store/store';
+import { DateField } from '../ui/DateField';
 
 /**
  * Onboarding (Abschnitt 6: kein Onboarding-Zwang, kein Pflichtkonto).
@@ -12,7 +13,10 @@ export function Onboarding() {
   const { addChild, updateSettings } = useStore();
   const [step, setStep] = useState<0 | 1>(0);
   const [name, setName] = useState('');
-  const [birthDate, setBirthDate] = useState(todayISO());
+  // Bewusst leer und nicht mit heute vorbelegt: Ein vorausgefülltes Datum
+  // wird übersehen und landet als Geburtsdatum im Bestand — das Kind ist dann
+  // „0 Tage" alt und jede Altersangabe stimmt nicht.
+  const [birthDate, setBirthDate] = useState('');
 
   return (
     <div className="app">
@@ -74,20 +78,18 @@ export function Onboarding() {
 
             <div className="field">
               <label className="field__label" htmlFor="ob-birth">{t('obBirthLabel')}</label>
-              <input
+              <DateField
                 id="ob-birth"
-                className="input"
-                type="date"
                 value={birthDate}
                 max={todayISO()}
-                onChange={(e) => setBirthDate(e.target.value)}
+                onCommit={setBirthDate}
               />
             </div>
 
             <button
               type="button"
               className="btn btn--primary btn--block"
-              disabled={!name.trim()}
+              disabled={!name.trim() || !birthDate}
               onClick={() => {
                 addChild({ name: name.trim(), birthDate });
                 updateSettings({ onboarded: true });

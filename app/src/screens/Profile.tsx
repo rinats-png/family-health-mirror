@@ -6,21 +6,22 @@ import { formatAge, formatDateShort, todayISO } from '../domain/dates';
 import { exportCsv, exportJson } from '../domain/export';
 import { useActions, useStore } from '../store/store';
 import type { AppState, Child, Locale, Sex } from '../domain/types';
+import { DateField } from '../ui/DateField';
 import { Sheet } from '../ui/Sheet';
 import { ExportSheet } from './ExportSheet';
-
-const FREE_CHILD_LIMIT = 1;
 
 export function Profile({ child }: { child: Child }) {
   const { t, locale } = useI18n();
   const {
-    state, addChild, updateChild, removeChild, setActiveChild,
+    state, addChild, updateChild, removeChild, clearChildData, setActiveChild,
     updateSettings, replaceState, resetAll, enableLock, disableLock,
   } = useStore();
   const { addCategory, updateCategory, removeCategory } = useActions();
 
   const [addingChild, setAddingChild] = useState(false);
-  const [childForm, setChildForm] = useState({ name: '', birthDate: todayISO() });
+  // Geburtsdatum bewusst leer: siehe Onboarding — ein vorbelegtes „heute"
+  // wird übersehen und macht jede Altersangabe falsch.
+  const [childForm, setChildForm] = useState({ name: '', birthDate: '' });
   const [exporting, setExporting] = useState(false);
   const [tileDraft, setTileDraft] = useState('');
   const [lockOpen, setLockOpen] = useState(false);
@@ -29,7 +30,6 @@ export function Profile({ child }: { child: Child }) {
   const [lockError, setLockError] = useState('');
 
   const { pro } = state.settings;
-  const canAddChild = pro || state.children.length < FREE_CHILD_LIMIT;
 
   const importJson = (file: File) => {
     const reader = new FileReader();
@@ -85,7 +85,8 @@ export function Profile({ child }: { child: Child }) {
                   {c.name} {c.id === child.id && <span className="pro-badge">{t('childActive')}</span>}
                 </div>
                 <div className="list-item__meta">
-                  {formatDateShort(c.birthDate, locale)} · {formatAge(c.birthDate, locale)}
+                  {formatDateShort(c.birthDate, locale)} · {formatAge(c.birthDate, locale)} ·{' '}
+                  {state.entries.filter((e) => e.childId === c.id).length} {t('childCount')}
                 </div>
               </div>
               {c.id !== child.id && (
@@ -96,9 +97,9 @@ export function Profile({ child }: { child: Child }) {
               <button
                 type="button"
                 className="btn btn--sm btn--ghost"
-                aria-label={t('delete')}
+                aria-label={`${t('delete')} — ${c.name}`}
                 onClick={() => {
-                  if (confirm(t('childDeleteConfirm'))) removeChild(c.id);
+                  if (confirm(`${c.name}: ${t('childDeleteConfirm')}`)) removeChild(c.id);
                 }}
               >
                 ✕
@@ -106,23 +107,20 @@ export function Profile({ child }: { child: Child }) {
             </div>
           ))}
         </div>
-        {canAddChild ? (
-          <button
-            type="button"
-            className="btn btn--ghost btn--block"
-            style={{ marginTop: 'var(--space-3)' }}
-            onClick={() => {
-              setChildForm({ name: '', birthDate: todayISO() });
-              setAddingChild(true);
-            }}
-          >
-            + {t('childAdd')}
-          </button>
-        ) : (
-          <div className="note note--info" style={{ marginTop: 'var(--space-3)' }}>
-            {t('proNeededChild')}
-          </div>
-        )}
+        <button
+          type="button"
+          className="btn btn--ghost btn--block"
+          style={{ marginTop: 'var(--space-3)' }}
+          onClick={() => {
+            setChildForm({ name: '', birthDate: '' });
+            setAddingChild(true);
+          }}
+        >
+          + {t('childAdd')}
+        </button>
+        <p className="small muted" style={{ marginTop: 'var(--space-2)' }}>
+          {t('childDataSeparate')}
+        </p>
       </section>
 
       <section className="section">
@@ -139,13 +137,11 @@ export function Profile({ child }: { child: Child }) {
           </div>
           <div className="field">
             <label className="field__label" htmlFor="p-birth">{t('obBirthLabel')}</label>
-            <input
+            <DateField
               id="p-birth"
-              className="input"
-              type="date"
               value={child.birthDate}
               max={todayISO()}
-              onChange={(e) => updateChild(child.id, { birthDate: e.target.value })}
+              onCommit={(v) => updateChild(child.id, { birthDate: v })}
             />
           </div>
           <div className="field">
@@ -414,6 +410,15 @@ export function Profile({ child }: { child: Child }) {
             type="button"
             className="btn btn--danger btn--block"
             onClick={() => {
+              if (confirm(`${child.name}: ${t('childClearDataConfirm')}`)) clearChildData(child.id);
+            }}
+          >
+            {t('childClearData')} — {child.name}
+          </button>
+          <button
+            type="button"
+            className="btn btn--danger btn--block"
+            onClick={() => {
               if (confirm(t('deleteAllConfirm'))) void resetAll();
             }}
           >
@@ -440,19 +445,17 @@ export function Profile({ child }: { child: Child }) {
           </div>
           <div className="field">
             <label className="field__label" htmlFor="nc-birth">{t('obBirthLabel')}</label>
-            <input
+            <DateField
               id="nc-birth"
-              className="input"
-              type="date"
               value={childForm.birthDate}
               max={todayISO()}
-              onChange={(e) => setChildForm({ ...childForm, birthDate: e.target.value })}
+              onCommit={(v) => setChildForm({ ...childForm, birthDate: v })}
             />
           </div>
           <button
             type="button"
             className="btn btn--primary btn--block"
-            disabled={!childForm.name.trim()}
+            disabled={!childForm.name.trim() || !childForm.birthDate}
             onClick={() => {
               const created = addChild({
                 name: childForm.name.trim(),

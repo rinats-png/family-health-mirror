@@ -4,6 +4,7 @@ import { useI18n } from '../i18n';
 import { formatDateShort, todayISO } from '../domain/dates';
 import { useActions, useStore } from '../store/store';
 import type { Child } from '../domain/types';
+import { DateField } from '../ui/DateField';
 import { Sheet } from '../ui/Sheet';
 
 /**
@@ -18,9 +19,13 @@ import { Sheet } from '../ui/Sheet';
 export function Vaccinations({ child }: { child: Child }) {
   const { t, locale } = useI18n();
   const { state } = useStore();
-  const { addVaccination, removeVaccination, addPassPhoto, removePassPhoto } = useActions();
+  const {
+    addVaccination, updateVaccination, removeVaccination, addPassPhoto, removePassPhoto,
+  } = useActions();
 
   const [open, setOpen] = useState(false);
+  /** Leer = neue Eintragung, sonst die Kennung der bearbeiteten. */
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState({
     date: todayISO(),
     name: '',
@@ -56,6 +61,7 @@ export function Vaccinations({ child }: { child: Child }) {
         className="btn btn--primary btn--block"
         onClick={() => {
           setForm({ date: todayISO(), name: '', batch: '', practice: '', note: '' });
+          setEditingId(null);
           setOpen(true);
         }}
       >
@@ -70,7 +76,23 @@ export function Vaccinations({ child }: { child: Child }) {
           <div className="list">
             {records.map((v) => (
               <div key={v.id} className="list-item">
-                <div className="list-item__main">
+                <button
+                  type="button"
+                  className="list-item__main"
+                  style={{ background: 'none', border: 'none', padding: 0, textAlign: 'left' }}
+                  aria-label={`${t('vaccinationEdit')}: ${v.name}`}
+                  onClick={() => {
+                    setForm({
+                      date: v.date,
+                      name: v.name,
+                      batch: v.batch ?? '',
+                      practice: v.practice ?? '',
+                      note: v.note ?? '',
+                    });
+                    setEditingId(v.id);
+                    setOpen(true);
+                  }}
+                >
                   <div className="list-item__title">{v.name}</div>
                   <div className="list-item__meta">{formatDateShort(v.date, locale)}</div>
                   {(v.batch || v.practice) && (
@@ -81,11 +103,11 @@ export function Vaccinations({ child }: { child: Child }) {
                     </div>
                   )}
                   {v.note && <div className="list-item__meta">„{v.note}"</div>}
-                </div>
+                </button>
                 <button
                   type="button"
                   className="btn btn--sm btn--ghost"
-                  aria-label={t('delete')}
+                  aria-label={`${t('delete')}: ${v.name}`}
                   onClick={() => removeVaccination(v.id)}
                 >
                   ✕
@@ -155,7 +177,11 @@ export function Vaccinations({ child }: { child: Child }) {
       <p className="disclaimer">{t('vaccinationNeutralNote')}</p>
 
       {open && (
-        <Sheet open onClose={() => setOpen(false)} title={t('vaccinationAdd')}>
+        <Sheet
+          open
+          onClose={() => setOpen(false)}
+          title={editingId ? t('vaccinationEdit') : t('vaccinationAdd')}
+        >
           <div className="field">
             <label className="field__label" htmlFor="vac-name">{t('vaccinationName')}</label>
             <input
@@ -176,13 +202,12 @@ export function Vaccinations({ child }: { child: Child }) {
 
           <div className="field">
             <label className="field__label" htmlFor="vac-date">{t('date')}</label>
-            <input
+            <DateField
               id="vac-date"
-              className="input"
-              type="date"
               value={form.date}
+              min={child.birthDate}
               max={todayISO()}
-              onChange={(e) => setForm({ ...form, date: e.target.value })}
+              onCommit={(v) => setForm({ ...form, date: v })}
             />
           </div>
 
@@ -227,15 +252,17 @@ export function Vaccinations({ child }: { child: Child }) {
             className="btn btn--primary btn--block"
             disabled={!form.name.trim()}
             onClick={() => {
-              addVaccination({
-                childId: child.id,
+              const record = {
                 date: form.date,
                 name: form.name.trim(),
                 batch: form.batch.trim() || undefined,
                 practice: form.practice.trim() || undefined,
                 note: form.note.trim() || undefined,
-              });
+              };
+              if (editingId) updateVaccination(editingId, record);
+              else addVaccination({ childId: child.id, ...record });
               setOpen(false);
+              setEditingId(null);
             }}
           >
             {t('save')}

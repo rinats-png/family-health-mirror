@@ -423,10 +423,15 @@ input, select, textarea {
   gap: var(--space-3);
   width: 100%;
   text-align: left;
-  background: var(--surface);
+  /* Auch einzeln stehende Zeilen sind Milchglas — sonst wäre die eine Zeile
+     im Kalenderblatt die einzige deckende Fläche der Anwendung. */
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
   padding: var(--space-3);
+  box-shadow: var(--glass-sheen);
 }
 
 .list-item__main { flex: 1; min-width: 0; }
@@ -437,10 +442,13 @@ input, select, textarea {
 /* ---------- Kalender ---------- */
 
 .calendar {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  background: var(--surface-glass);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--brand-line);
   border-radius: var(--radius-tile);
   padding: var(--space-4);
+  box-shadow: var(--shadow-tile), var(--glass-sheen);
 }
 
 .calendar__head {
@@ -765,6 +773,11 @@ input, select, textarea {
   border: none;
   border-radius: 0;
   background: transparent;
+  /* Die Karte darüber bringt Unschärfe und Glanz schon mit; doppelt gelegt
+     würde jede Zeile eine eigene Scheibe wirken. */
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  box-shadow: none;
 }
 
 .list--grouped .list-item + .list-item {

@@ -5,6 +5,7 @@ import { formatTime, fromLocalInputValue, nowISO, toLocalInputValue } from '../d
 import { celsiusToDisplay, parseDecimal, temperatureFromInput } from '../domain/units';
 import { useActions, useStore } from '../store/store';
 import type { Entry } from '../domain/types';
+import { DateTimeField } from '../ui/DateField';
 import { Sheet } from '../ui/Sheet';
 
 /**
@@ -25,6 +26,7 @@ export function EntrySheet({ entry, onClose }: { entry: Entry; onClose: () => vo
   const [tagDraft, setTagDraft] = useState('');
 
   const live = state.entries.find((e) => e.id === entry.id) ?? entry;
+  const child = state.children.find((c) => c.id === live.childId);
   const categories = visibleCategories(state.categories);
   const unit = live.temperatureUnit ?? state.settings.temperatureUnit;
 
@@ -62,6 +64,22 @@ export function EntrySheet({ entry, onClose }: { entry: Entry; onClose: () => vo
       <div className="sheet__saved">
         <span aria-hidden>✓</span>
         <span>{t('entrySavedAt')} · {formatTime(live.at)}</span>
+      </div>
+
+      {/* Der Zeitpunkt stand früher zusammengeklappt am Ende des Blattes. Wer
+          einen Eintrag nachtragen wollte, musste ihn erst finden — und hatte
+          bis dahin den heutigen Tag im Bestand. Er steht jetzt an erster
+          Stelle, weil er zum Eintrag gehört und nicht zu den Ergänzungen. */}
+      <div className="field">
+        <label className="field__label" htmlFor="entry-at">{t('entryWhen')}</label>
+        <DateTimeField
+          id="entry-at"
+          value={toLocalInputValue(live.at)}
+          min={child ? `${child.birthDate}T00:00` : undefined}
+          max={toLocalInputValue(nowISO())}
+          onCommit={(v) => updateEntry(live.id, { at: fromLocalInputValue(v) })}
+        />
+        <p className="small muted" style={{ marginTop: 6 }}>{t('entryWhenHint')}</p>
       </div>
 
       <div className="field">
@@ -216,22 +234,6 @@ export function EntrySheet({ entry, onClose }: { entry: Entry; onClose: () => vo
           </div>
         )}
       </div>
-
-      <details className="field">
-        <summary className="field__label" style={{ cursor: 'pointer' }}>
-          {t('entryChangeTime')}
-        </summary>
-        <input
-          className="input"
-          type="datetime-local"
-          value={toLocalInputValue(live.at)}
-          max={toLocalInputValue(nowISO())}
-          onChange={(e) => {
-            if (e.target.value) updateEntry(live.id, { at: fromLocalInputValue(e.target.value) });
-          }}
-          style={{ marginTop: 8 }}
-        />
-      </details>
 
       <button type="button" className="btn btn--primary btn--block" onClick={onClose}>
         {t('done')}

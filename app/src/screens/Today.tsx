@@ -17,6 +17,7 @@ import { celsiusToDisplay, formatNumber } from '../domain/units';
 import { useActions, useStore } from '../store/store';
 import type { Category, Child, Entry } from '../domain/types';
 import { CardArt } from '../ui/CardArt';
+import { DateTimeField } from '../ui/DateField';
 import { Sheet } from '../ui/Sheet';
 
 /**
@@ -331,13 +332,7 @@ export function Today({
           </div>
           <div className="field">
             <label className="field__label" htmlFor="rem-at">{t('time')}</label>
-            <input
-              id="rem-at"
-              className="input"
-              type="datetime-local"
-              value={reminderAt}
-              onChange={(e) => setReminderAt(e.target.value)}
-            />
+            <DateTimeField id="rem-at" value={reminderAt} onCommit={setReminderAt} />
           </div>
           <button
             type="button"

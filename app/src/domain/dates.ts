@@ -134,6 +134,18 @@ export function formatDateTimeShort(iso: ISODateTime, locale: Locale): string {
   return `${formatDateShort(dayOf(iso), locale)} ${formatTime(iso)}`;
 }
 
+/**
+ * Zeitpunkt an einem bestimmten Kalendertag: die aktuelle Uhrzeit, aber an
+ * diesem Datum. Für Nachträge aus dem Kalender — der Tag steht fest, die
+ * Uhrzeit ist dem Nutzer meist gleichgültig und bleibt änderbar.
+ */
+export function atOnDay(day: ISODate): ISODateTime {
+  const now = new Date();
+  const d = parseDate(day);
+  d.setHours(now.getHours(), now.getMinutes(), 0, 0);
+  return d.toISOString();
+}
+
 export function toLocalInputValue(iso: ISODateTime): string {
   const d = new Date(iso);
   const pad = (n: number) => String(n).padStart(2, '0');

@@ -20,7 +20,7 @@
 :root {
   /* Hauptfarbe — Flächen und Rahmen, niemals als Textfarbe */
   --brand: #ddc6b6;
-  --brand-soft: #e4d2c5;        /* erhabene Fläche AUF einer Karte */
+  --brand-soft: #ede0d6;        /* erhabene Fläche AUF einer Karte */
   --brand-strong: #bc9c82;      /* Trennlinien */
   --brand-ink: #262223;         /* Haupttext AUF --brand — 9,61:1 */
   --brand-muted: #54443a;       /* Sekundärtext AUF --brand — 5,66:1 */
@@ -41,28 +41,27 @@
   --bg-to: #ddc6b6;
 
   /*
-   * Flächen tragen exakt die Hauptfarbe — derselbe Wert wie der Hintergrund.
-   * Die Unterscheidung Karte/Hintergrund leistet ausschließlich die Kante
-   * --brand-line mit 4,53:1 gegen beide Seiten. Diese Kante ist damit nicht
-   * dekorativ, sondern tragend: Ohne sie verschwindet die Karte.
+   * Milchglas.
    *
-   * --surface-2 liegt darüber: Bedienelemente (Eingabefelder, Chips,
-   * Symbolkreise, aktive Pille) heben sich vom Untergrund ab, Flächen nicht.
+   * Die Flächen tragen keine eigene Farbe mehr, sondern einen hellen Schleier
+   * über dem, was hinter ihnen liegt, plus Unschärfe. Über dem Hintergrund
+   * ergibt das #E2D0C3 — eine Spur heller als die Hauptfarbe, milchig, ohne
+   * eigenen Farbton.
    *
-   * --surface ist der SOLIDE Wert und zugleich der Prüfmaßstab. Das
-   * Glas-Komposit über dem Verlauf liegt heller, also kontrastreicher; gegen
-   * den soliden Wert zu rechnen ist die vorsichtige Variante.
+   * --surface bleibt der PRÜFMASSSTAB und steht deshalb weiter auf der
+   * Hauptfarbe: Das ist der dunkelste Wert, den eine Fläche annehmen kann
+   * (Schleier weggedacht). Jeder Text, der gegen diesen Wert besteht, besteht
+   * erst recht gegen das hellere Komposit.
+   *
+   * Kopfzeile und Fußnavigation nehmen einen dichteren Schleier, weil Inhalt
+   * dahinter durchscrollt.
    */
   --surface: #ddc6b6;
-  --surface-2: #e4d2c5;
+  --surface-2: #ede0d6;
 
-  /* Glas: halbtransparente Füllung plus Unschärfe dahinter. */
-  --surface-glass: rgba(221, 198, 182, 0.72);
-  --chrome-glass: rgba(221, 198, 182, 0.88);
-  --glass-blur: 18px;
-  /* Der Glanz macht das Glas sichtbar, nicht die Füllung: heller Innenrand
-     oben, ein Hauch Schatten unten. Beides liegt auf der Kante, nicht auf der
-     Fläche — der Ton der Fläche bleibt damit exakt die Hauptfarbe. */
+  --surface-glass: rgba(255, 255, 255, 0.18);
+  --chrome-glass: rgba(255, 255, 255, 0.4);
+  --glass-blur: 24px;
   --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.55),
     inset 0 -1px 0 rgba(74, 47, 38, 0.12);
 
@@ -72,7 +71,7 @@
 
   --action: #0d4353;            /* 6,14:1 auf der Fläche, 10,80:1 für weißen Text */
   --action-hover: #0a3542;
-  --action-soft: #e4d2c5;
+  --action-soft: #ede0d6;
   --accent: #65abc4;            /* dekorativ: Diagramme, Linien */
 
   --warning: #e88c2b;
@@ -127,8 +126,8 @@
   --surface: #322721;
   --surface-2: #3f322a;
 
-  --surface-glass: rgba(50, 39, 33, 0.76);
-  --chrome-glass: rgba(50, 39, 33, 0.92);
+  --surface-glass: rgba(255, 255, 255, 0.07);
+  --chrome-glass: rgba(28, 22, 19, 0.72);
   --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.13),
     inset 0 -1px 0 rgba(0, 0, 0, 0.35);
 

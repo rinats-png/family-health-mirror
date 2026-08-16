@@ -9,6 +9,8 @@ import { Profile } from './screens/Profile';
 import { Today } from './screens/Today';
 import { Vaccinations } from './screens/Vaccinations';
 import { useActions, useStore } from './store/store';
+import { Sheet } from './ui/Sheet';
+import { formatAge } from './domain/dates';
 import type { Entry } from './domain/types';
 
 type Tab = 'today' | 'history' | 'measurements' | 'vaccinations' | 'profile';
@@ -22,6 +24,7 @@ function Shell() {
   const [tab, setTab] = useState<Tab>('today');
   const [sheetEntry, setSheetEntry] = useState<Entry | null>(null);
   const [undoId, setUndoId] = useState<string | null>(null);
+  const [childPicker, setChildPicker] = useState(false);
   const undoTimer = useRef<number | undefined>(undefined);
 
   useEffect(() => () => window.clearTimeout(undoTimer.current), []);
@@ -64,19 +67,19 @@ function Shell() {
     undoTimer.current = window.setTimeout(() => setUndoId(null), UNDO_MS);
   };
 
-  const cycleChild = () => {
-    if (state.children.length < 2) {
-      setTab('profile');
-      return;
-    }
-    const idx = state.children.findIndex((c) => c.id === activeChild.id);
-    setActiveChild(state.children[(idx + 1) % state.children.length].id);
-  };
 
   return (
     <div className="app">
       <header className="topbar">
-        <button type="button" className="child-switch" onClick={cycleChild} aria-label={activeChild.name}>
+        {/* Früher wurde beim Tippen zum nächsten Kind weitergeschaltet. Ab drei
+            Kindern ist das Raten; die Auswahl zeigt jetzt alle auf einmal. */}
+        <button
+          type="button"
+          className="child-switch"
+          onClick={() => setChildPicker(true)}
+          aria-haspopup="dialog"
+          aria-label={`${activeChild.name} — ${t('childPick')}`}
+        >
           <span className="avatar" style={{ background: activeChild.color }} aria-hidden>
             {activeChild.photo ? (
               <img
@@ -124,6 +127,59 @@ function Shell() {
           </button>
         ))}
       </nav>
+
+      {childPicker && (
+        <Sheet open onClose={() => setChildPicker(false)} title={t('childPick')}>
+          <div className="list list--grouped">
+            {state.children.map((c) => (
+              <button
+                key={c.id}
+                type="button"
+                className="list-item"
+                aria-current={c.id === activeChild.id}
+                onClick={() => {
+                  setActiveChild(c.id);
+                  setChildPicker(false);
+                }}
+              >
+                <span className="avatar" style={{ background: c.color }} aria-hidden>
+                  {c.photo ? (
+                    <img
+                      src={c.photo}
+                      alt=""
+                      style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                    />
+                  ) : (
+                    c.name.slice(0, 1).toUpperCase()
+                  )}
+                </span>
+                <div className="list-item__main">
+                  <div className="list-item__title">{c.name}</div>
+                  <div className="list-item__meta">
+                    {formatAge(c.birthDate, state.settings.locale)} ·{' '}
+                    {state.entries.filter((e) => e.childId === c.id).length} {t('childCount')}
+                  </div>
+                </div>
+                {c.id === activeChild.id && <span className="pro-badge">{t('childActive')}</span>}
+              </button>
+            ))}
+          </div>
+          <button
+            type="button"
+            className="btn btn--ghost btn--block"
+            style={{ marginTop: 'var(--space-4)' }}
+            onClick={() => {
+              setChildPicker(false);
+              setTab('profile');
+            }}
+          >
+            + {t('childAdd')}
+          </button>
+          <p className="small muted" style={{ marginTop: 'var(--space-2)' }}>
+            {t('childDataSeparate')}
+          </p>
+        </Sheet>
+      )}
 
       {sheetEntry && <EntrySheet entry={sheetEntry} onClose={closeSheet} />}
 

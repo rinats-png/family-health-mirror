@@ -106,7 +106,10 @@ export const STRINGS = {
       'Reines Protokoll. Die App führt keine Präparateliste und berechnet nichts.',
     entryTagsPlaceholder: 'Tag hinzufügen',
     entryPhotoHint: 'Das Foto bleibt auf diesem Gerät.',
-    entryChangeTime: 'Zeitpunkt ändern',
+    entryWhen: 'Wann?',
+    addEntryOnDay: 'Eintrag an diesem Tag',
+    entryWhenHint:
+      'Voreingestellt ist der Zeitpunkt des Antippens. Für einen Nachtrag hier das Datum ändern.',
     entryDelete: 'Eintrag löschen',
 
     // Verlauf
@@ -167,6 +170,14 @@ export const STRINGS = {
     childAdd: 'Weiteres Kind',
     childActive: 'aktiv',
     childSwitch: 'Wechseln',
+    childPick: 'Kind wählen',
+    childCount: 'Aufzeichnungen',
+    childClearData: 'Aufzeichnungen löschen',
+    childClearDataConfirm:
+      'Alle Einträge, Messwerte, Impfeintragungen, Erinnerungen und Fotos dieses Kindes löschen? Das Kind selbst bleibt bestehen.',
+    childDataSeparate: 'Jedes Kind hat einen eigenen Bestand. Ein Wechsel oben in der Kopfzeile.',
+    measurementEdit: 'Messwert bearbeiten',
+    vaccinationEdit: 'Eintragung bearbeiten',
     childDeleteConfirm:
       'Dieses Kind und alle zugehörigen Einträge, Messwerte, Impfeintragungen und Fotos unwiderruflich löschen?',
     childSex: 'Geschlecht',
@@ -221,7 +232,6 @@ export const STRINGS = {
       'Kostenlos: ein Kind, unbegrenzte Einträge, Kalender, Messwerte mit einer Referenz, Impfliste, PDF mit Wasserzeichen. Pro: mehrere Kinder, alle Referenzen, eigene Kacheln, unbegrenzte Fotoanhänge, PDF ohne Wasserzeichen, Datenexport.',
     proEnable: 'Pro freischalten (Test, ohne Zahlung)',
     proDisable: 'Pro deaktivieren',
-    proNeededChild: 'Mehrere Kinder sind in Pro enthalten.',
     proNeededTiles: 'Eigene Kacheln sind in Pro enthalten.',
     proNeededExport: 'Der Datenexport ist in Pro enthalten.',
 
@@ -333,7 +343,10 @@ export const STRINGS = {
       'A plain log. The app keeps no product database and calculates nothing.',
     entryTagsPlaceholder: 'Add a tag',
     entryPhotoHint: 'The photo stays on this device.',
-    entryChangeTime: 'Change the time',
+    entryWhen: 'When?',
+    addEntryOnDay: 'Add a record on this day',
+    entryWhenHint:
+      'Preset to the moment you tapped. Change the date here to log something later.',
     entryDelete: 'Delete record',
 
     historyTitle: 'History',
@@ -390,6 +403,14 @@ export const STRINGS = {
     childAdd: 'Another child',
     childActive: 'active',
     childSwitch: 'Switch',
+    childPick: 'Choose a child',
+    childCount: 'records',
+    childClearData: 'Delete records',
+    childClearDataConfirm:
+      'Delete all records, measurements, vaccination entries, reminders and photos for this child? The child itself stays.',
+    childDataSeparate: 'Each child has a separate set of records. Switch at the top of the screen.',
+    measurementEdit: 'Edit measurement',
+    vaccinationEdit: 'Edit entry',
     childDeleteConfirm:
       'Permanently delete this child together with all records, measurements, vaccination entries and photos?',
     childSex: 'Sex',
@@ -444,7 +465,6 @@ export const STRINGS = {
       'Free: one child, unlimited records, calendar, measurements with one reference, vaccination list, PDF with a watermark. Pro: several children, all references, your own tiles, unlimited photo attachments, PDF without a watermark, data export.',
     proEnable: 'Unlock Pro (test, no payment)',
     proDisable: 'Turn Pro off',
-    proNeededChild: 'Several children are included in Pro.',
     proNeededTiles: 'Your own tiles are included in Pro.',
     proNeededExport: 'Data export is included in Pro.',
 

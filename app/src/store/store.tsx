@@ -124,6 +124,8 @@ interface StoreValue {
   addChild: (input: Pick<Child, 'name' | 'birthDate'> & Partial<Child>) => Child;
   updateChild: (id: ID, patch: Partial<Child>) => void;
   removeChild: (id: ID) => void;
+  /** Löscht alle Aufzeichnungen eines Kindes, behält aber das Kind selbst. */
+  clearChildData: (id: ID) => void;
 
   add: <T extends { id: ID }>(collection: Collection, record: Omit<T, keyof SyncMeta | 'id'>) => T;
   update: (collection: Collection, id: ID, patch: Record<string, unknown>) => void;
@@ -291,6 +293,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  const clearChildData = useCallback<StoreValue['clearChildData']>((id) => {
+    setState((s) => ({
+      ...s,
+      entries: s.entries.filter((e) => e.childId !== id),
+      measurements: s.measurements.filter((m) => m.childId !== id),
+      reminders: s.reminders.filter((r) => r.childId !== id),
+      vaccinations: s.vaccinations.filter((v) => v.childId !== id),
+      passPhotos: s.passPhotos.filter((p) => p.childId !== id),
+    }));
+  }, []);
+
   const add = useCallback<StoreValue['add']>((collection, record) => {
     const created = { ...(record as object), id: uid(collection.slice(0, 3)), ...meta() } as never;
     setState((s) => ({ ...s, [collection]: [...(s[collection] as unknown[]), created] }));
@@ -341,13 +354,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     () => ({
       state, ready, lockState, activeChild,
       unlock, enableLock, disableLock,
-      setActiveChild, addChild, updateChild, removeChild,
+      setActiveChild, addChild, updateChild, removeChild, clearChildData,
       add, update, remove, updateSettings, replaceState, resetAll,
     }),
     [
       state, ready, lockState, activeChild, unlock, enableLock, disableLock,
-      setActiveChild, addChild, updateChild, removeChild, add, update, remove,
-      updateSettings, replaceState, resetAll,
+      setActiveChild, addChild, updateChild, removeChild, clearChildData,
+      add, update, remove, updateSettings, replaceState, resetAll,
     ],
   );
 
@@ -370,6 +383,8 @@ export function useActions() {
 
       addMeasurement: (r: Omit<Measurement, keyof SyncMeta | 'id'>) =>
         add<Measurement>('measurements', r),
+      updateMeasurement: (id: ID, patch: Partial<Measurement>) =>
+        update('measurements', id, patch),
       removeMeasurement: (id: ID) => remove('measurements', id),
 
       addReminder: (r: Omit<Reminder, keyof SyncMeta | 'id'>) => add<Reminder>('reminders', r),
