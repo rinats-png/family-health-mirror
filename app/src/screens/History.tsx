@@ -5,6 +5,7 @@ import {
   addDays,
   atOnDay,
   dayOf,
+  daysBetween,
   formatDateShort,
   formatTime,
   monthName,
@@ -16,6 +17,7 @@ import {
 import { celsiusToDisplay, formatNumber } from '../domain/units';
 import { useActions, useStore } from '../store/store';
 import type { Child, Entry, ISODate } from '../domain/types';
+import { EntriesChart, ValueChart, type DayBar, type ValuePoint } from '../ui/HistoryChart';
 
 /**
  * Kalender-, Listen- und Filteransicht (Abschnitt 4.2).
@@ -101,6 +103,93 @@ export function History({
       })
       .sort((a, b) => b.at.localeCompare(a.at));
   }, [childEntries, query, categoryFilter, view, monthStart, monthEnd, cursor.year, state.categories, locale]);
+
+  /**
+   * Balken für die Diagramme: eine Auszählung der eigenen Einträge je Tag
+   * (Monatsansicht) beziehungsweise je Monat (Jahresansicht). Die Segmente
+   * tragen die Farbe der Kategorie, die der Nutzer selbst gewählt hat.
+   */
+  const bars = useMemo<DayBar[]>(() => {
+    const inPeriod = childEntries.filter((e) => {
+      const day = dayOf(e.at);
+      return view === 'month'
+        ? day >= monthStart && day <= monthEnd
+        : day >= `${cursor.year}-01-01` && day <= `${cursor.year}-12-31`;
+    });
+
+    const bucketOf = (e: Entry) =>
+      view === 'month' ? dayOf(e.at) : dayOf(e.at).slice(0, 7);
+
+    const counts = new Map<string, Map<string, number>>();
+    for (const e of inPeriod) {
+      const bucket = bucketOf(e);
+      const byColor = counts.get(bucket) ?? new Map<string, number>();
+      const colors = e.categoryIds.map((id) => colorOf(id)).filter(Boolean) as string[];
+      // Ein Eintrag ohne Kategorie zählt trotzdem — er ist ja vorhanden.
+      const keys = colors.length ? colors : ['var(--border-strong)'];
+      for (const c of keys) byColor.set(c, (byColor.get(c) ?? 0) + 1);
+      counts.set(bucket, byColor);
+    }
+
+    const toBar = (key: string, tick: string, label: string): DayBar => ({
+      tick,
+      label,
+      segments: [...(counts.get(key) ?? new Map())].map(([color, count]) => ({ color, count })),
+    });
+
+    if (view === 'month') {
+      return Array.from({ length: parseDate(monthEnd).getDate() }, (_, i) => {
+        const day = addDays(monthStart, i);
+        return toBar(day, String(i + 1), formatDateShort(day, locale));
+      });
+    }
+    return Array.from({ length: 12 }, (_, m) => {
+      const key = `${cursor.year}-${String(m + 1).padStart(2, '0')}`;
+      return toBar(key, monthName(m, locale).slice(0, 3), `${monthName(m, locale)} ${cursor.year}`);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [childEntries, view, monthStart, monthEnd, cursor.year, state.categories, locale]);
+
+  /** Eingetragene Temperaturen im gezeigten Zeitraum, unverändert übernommen. */
+  const tempPoints = useMemo<ValuePoint[]>(() => {
+    const from = view === 'month' ? monthStart : `${cursor.year}-01-01`;
+    const to = view === 'month' ? monthEnd : `${cursor.year}-12-31`;
+    const withTemp = childEntries
+      .filter((e) => e.temperature != null && dayOf(e.at) >= from && dayOf(e.at) <= to)
+      .sort((a, b) => a.at.localeCompare(b.at));
+    const spanDays = Math.max(1, daysBetween(from, to));
+    const unit = state.settings.temperatureUnit;
+    return withTemp.map((e) => ({
+      at: Math.min(1, Math.max(0, daysBetween(from, dayOf(e.at)) / spanDays)),
+      value: celsiusToDisplay(e.temperature!, unit),
+      label: `${formatDateShort(dayOf(e.at), locale)} ${formatTime(e.at)}: ${formatNumber(
+        celsiusToDisplay(e.temperature!, unit),
+      )} °${unit}`,
+    }));
+  }, [childEntries, view, monthStart, monthEnd, cursor.year, state.settings.temperatureUnit, locale]);
+
+  /** Beschriftete Stellen der x-Achse — dieselben wie im Balkendiagramm. */
+  const xTicks = useMemo(() => {
+    if (view === 'month') {
+      const span = Math.max(1, daysBetween(monthStart, monthEnd));
+      const last = parseDate(monthEnd).getDate();
+      const out: { at: number; label: string }[] = [];
+      for (let d = 1; d <= last; d += 5) out.push({ at: (d - 1) / span, label: String(d) });
+      return out;
+    }
+    return Array.from({ length: 6 }, (_, i) => {
+      const m = i * 2;
+      const from = `${cursor.year}-01-01`;
+      const to = `${cursor.year}-12-31`;
+      const day = `${cursor.year}-${String(m + 1).padStart(2, '0')}-01`;
+      return {
+        at: daysBetween(from, day) / Math.max(1, daysBetween(from, to)),
+        label: monthName(m, locale).slice(0, 3),
+      };
+    });
+  }, [view, monthStart, monthEnd, cursor.year, locale]);
+
+  const hasBars = bars.some((b) => b.segments.length > 0);
 
   const dayEntries = selected
     ? childEntries.filter((e) => dayOf(e.at) === selected).sort((a, b) => a.at.localeCompare(b.at))
@@ -240,6 +329,42 @@ export function History({
           </div>
         )}
       </div>
+
+      <section className="section">
+        <div className="section__title">{t('chartsTitle')}</div>
+        <div className="tile tile--wide">
+          <div className="tile__label">
+            {view === 'month' ? t('chartEntries') : t('chartEntriesMonths')}
+          </div>
+          {hasBars ? (
+            <EntriesChart
+              bars={bars}
+              ariaLabel={`${view === 'month' ? t('chartEntries') : t('chartEntriesMonths')} — ${child.name}`}
+              yLabel={t('chartAxisCount')}
+              xLabel={view === 'month' ? t('chartAxisDay') : t('chartAxisMonth')}
+            />
+          ) : (
+            <p className="small muted" style={{ marginTop: 'var(--space-2)' }}>{t('chartNone')}</p>
+          )}
+
+          {tempPoints.length > 0 && (
+            <>
+              <div className="tile__label" style={{ marginTop: 'var(--space-4)' }}>
+                {t('chartTemperature')} (°{state.settings.temperatureUnit})
+              </div>
+              <ValueChart
+                points={tempPoints}
+                ticks={xTicks}
+                ariaLabel={`${t('chartTemperature')} — ${child.name}`}
+                yLabel={`°${state.settings.temperatureUnit}`}
+                xLabel={view === 'month' ? t('chartAxisDay') : t('chartAxisMonth')}
+              />
+            </>
+          )}
+
+          <p className="small muted" style={{ marginTop: 'var(--space-3)' }}>{t('chartHint')}</p>
+        </div>
+      </section>
 
       {selected && (
         <section className="section">

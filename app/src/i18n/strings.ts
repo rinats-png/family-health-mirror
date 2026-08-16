@@ -114,6 +114,16 @@ export const STRINGS = {
 
     // Verlauf
     historyTitle: 'Verlauf',
+    chartsTitle: 'Diagramme',
+    chartEntries: 'Einträge je Tag',
+    chartEntriesMonths: 'Einträge je Monat',
+    chartTemperature: 'Eingetragene Temperatur',
+    chartAxisCount: 'Anzahl',
+    chartAxisDay: 'Tag',
+    chartAxisMonth: 'Monat',
+    chartNone: 'Für diesen Zeitraum ist nichts eingetragen.',
+    chartHint:
+      'Gezeigt wird ausgezählt, was Sie selbst eingetragen haben. Es gibt keine Auswertung, keine Trendlinie und keine Schwellenwerte.',
     viewMonth: 'Monat',
     viewYear: 'Jahr',
     entriesOnDay: 'Einträge an diesem Tag',
@@ -350,6 +360,16 @@ export const STRINGS = {
     entryDelete: 'Delete record',
 
     historyTitle: 'History',
+    chartsTitle: 'Charts',
+    chartEntries: 'Records per day',
+    chartEntriesMonths: 'Records per month',
+    chartTemperature: 'Temperature you entered',
+    chartAxisCount: 'Count',
+    chartAxisDay: 'Day',
+    chartAxisMonth: 'Month',
+    chartNone: 'Nothing entered for this period.',
+    chartHint:
+      'This counts what you entered yourself. There is no analysis, no trend line and no thresholds.',
     viewMonth: 'Month',
     viewYear: 'Year',
     entriesOnDay: 'Records on this day',

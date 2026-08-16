@@ -46,6 +46,11 @@ Keine Wirkstoffdatenbank, keine Berechnung, kein Intervall.
 Farbe der selbst gewählten Kategorie. Suche und Filter über Zeitraum, Kategorie,
 Tag und Freitext.
 
+**Diagramme.** Balken mit der Anzahl der eigenen Einträge je Tag beziehungsweise
+je Monat, Punkte mit der eingetragenen Temperatur über der Zeit — beide mit x-
+und y-Achse. Ohne Trendlinie, ohne Schwellenwerte, ohne Einfärbung nach Höhe des
+Werts.
+
 **Messwerte.** Gewicht, Körperlänge, Kopfumfang auf einer wählbaren Referenzkurve,
 mit beschrifteten Linien (P3/P10/P50/P90/P97) und neutralem Perzentilwert.
 

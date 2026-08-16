@@ -60,6 +60,7 @@ Eine Auszählung dessen, was der Nutzer selbst angelegt hat („17 Einträge im 
 | Medikamente | Präparat und Menge als Freitext mit Zeitstempel | keine. Siehe 3/6. |
 | Erinnerungen | Nutzer wählt Text und Zeitpunkt | keine. Die Anwendung schlägt keinen Zeitpunkt vor und errechnet keinen. |
 | Kalender | Monats- und Jahresansicht, Tage mit Einträgen tragen Punkte in der Farbe der vom Nutzer gewählten Kategorie | keine. Keine Einfärbung nach Art, Menge oder Schwere. |
+| Diagramme im Verlauf | Balken: Anzahl der eigenen Einträge je Tag bzw. je Monat. Punkte: die eingetragene Temperatur über der Zeit | Grenzbereich, siehe 5.4. |
 | Filter/Suche | Zeitraum, Kategorie, Freitext über Notizen und Tags | keine. |
 | Messwerte | Gewicht, Länge, Kopfumfang; Darstellung auf wählbarer Referenzkurve; neutraler Perzentilwert | Grenzbereich, siehe 5.1. |
 | Impfungen | Manuelle Liste, Fotos des Impfpasses, PDF-Ausgabe | keine. Siehe 3/7. |
@@ -94,6 +95,19 @@ Der Export ist kein „Arztbericht" und wird nirgends so genannt.
 ### 5.3 Kalenderfarben
 
 Die Farbe eines Tages ist die Farbe der Kategorie, die der Nutzer selbst gewählt und selbst benannt hat. Die Palette enthält bewusst weder `#E88C2B` noch dunkle Rottöne — Warnfarben implizieren eine Bewertung. Diese Farben sind ausschließlich UI-Zuständen vorbehalten (Löschbestätigung, Hinweis auf den Prototypstatus).
+
+### 5.4 Diagramme im Verlauf
+
+**Warum das keine Bewertung ist:** Das Balkendiagramm ist eine Auszählung — dieselbe Zahl, die Abschnitt 3.2 ausdrücklich als zulässig benennt, nur als Balken statt als Ziffer. Die Segmentfarben sind die Kategoriefarben, die der Nutzer selbst vergeben hat, identisch mit den Punkten im Kalender. Das Temperaturdiagramm trägt die eingegebenen Werte an ihrem Zeitpunkt auf; die Verbindungslinie verbindet ausschließlich vorhandene Punkte.
+
+**Was konkret unterlassen wird:**
+* keine Ausgleichs- oder Trendlinie, kein gleitender Durchschnitt, keine Regression,
+* keine Schwellenwertlinie (etwa bei 38 °C) und keine farbige Zone im Diagramm,
+* keine Hervorhebung einzelner Punkte, keine Warnfarbe an einem Messwert,
+* keine Glättung über Lücken hinweg, die einen durchgehenden Verlauf behaupten würde,
+* keine Achsenbeschriftung, die einen Wertebereich benennt oder einordnet.
+
+Die Einschränkungen stehen als Kommentar im Kopf von `app/src/ui/HistoryChart.tsx`, damit sie beim Erweitern der Datei sichtbar sind.
 
 ## 6. Sprachregeln
 
