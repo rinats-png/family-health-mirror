@@ -146,10 +146,23 @@ sind Milchglas: ein heller Schleier über dem, was dahinter liegt, plus
 `backdrop-filter: blur(24px)`. Sie tragen **keine eigene Farbe** — was man
 sieht, ist der Hintergrund durch den Schleier.
 
-| Rolle | Token | Wert | Komposit über dem Hintergrund |
-|---|---|---|---|
-| Scheibe | `--surface-glass` | `rgba(255,255,255,.18)` | `#E2D0C3` |
-| Kopfzeile, Fußnavigation | `--chrome-glass` | `rgba(255,255,255,.40)` | `#EADCD2` |
+| Rolle | Token | Deckkraft |
+|---|---|---|
+| Karte, Liste, Kalender | `--surface-glass` | `rgba(255,255,255,.18)` |
+| Kopfzeile, Fußnavigation | `--chrome-glass` | `rgba(238,227,218,.93)` |
+| Blatt | `--sheet-glass` | `rgba(242,233,226,.92)` |
+| Fläche hinter einem Blatt | `--backdrop-tint` + `--backdrop-blur` | `rgba(38,34,35,.55)`, 28 px |
+
+**Was über dem Inhalt liegt, braucht mehr Deckkraft als eine Karte.** Eine Karte
+liegt auf dem Hintergrund; dahinter steht nichts, was ablenken könnte. Kopfzeile,
+Fußnavigation und Blätter liegen über dem Inhalt — bei dünnem Schleier stehen
+dort zwei Textebenen übereinander, und beide werden unlesbar. Deshalb tragen sie
+einen Ton statt reinem Weiß und deutlich mehr Deckkraft.
+
+**Ein offenes Blatt macht den ganzen Bildschirm unscharf.** Nicht als Schmuck:
+Ein Blatt ist modal, alles dahinter ist in diesem Moment nicht bedienbar und
+soll auch nicht mehr gelesen werden. Die Unschärfe liegt auf `.sheet-backdrop`,
+nicht auf dem Blatt selbst.
 
 Vier Regeln dazu:
 
@@ -163,9 +176,28 @@ Vier Regeln dazu:
    würde die Beschriftung stören.
 3. **Eingabefelder bleiben deckend** auf `--surface-2`. Unschärfe hinter
    getipptem Text macht das Lesen schwerer, und genau dort zählt Genauigkeit.
-4. **Unschärfe wird nicht geschachtelt.** Eine Zeile in einer gruppierten Liste
-   schaltet `backdrop-filter` ab — die Karte darüber bringt sie schon mit,
-   sonst wirkt jede Zeile als eigene Scheibe.
+4. **Unschärfe wird nicht geschachtelt.** Ein Element mit `backdrop-filter`
+   wird selbst zum Bezugspunkt — für seine Kindelemente liegt dahinter nichts
+   mehr, ihr eigenes `backdrop-filter` bleibt wirkungslos. Deshalb hat das
+   Blatt keines (die Fläche darunter blendet für den ganzen Bildschirm), und
+   Zeilen in einer gruppierten Liste schalten es ab.
+
+#### Schreibweise: erst `-webkit-`, dann Standard
+
+```css
+-webkit-backdrop-filter: blur(var(--glass-blur));
+backdrop-filter: blur(var(--glass-blur));   /* immer zuletzt */
+```
+
+Andersherum wirft der CSS-Minifier die Standardschreibweise beim Bauen weg und
+lässt nur die `-webkit-`-Zeile stehen. Im Browser kommt dann
+`backdrop-filter: none` an — die Unschärfe war im ausgelieferten Build monatelang
+wirkungslos, während sie im Entwicklungsserver lief. Prüfen mit:
+
+```js
+getComputedStyle(document.querySelector('.sheet-backdrop')).backdropFilter
+// erwartet: "blur(28px)", nicht "none"
+```
 
 Eine Fläche aus Glas grenzt sich nie über die Füllung ab — immer über
 `--brand-line`.

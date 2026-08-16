@@ -65,22 +65,36 @@ export function ageInMonths(birthDate: ISODate, at: ISODate = todayISO()): numbe
   return Math.max(0, months + fraction);
 }
 
+/** Ein Kind war „1 Tage" alt, solange die Einzahl fehlte. */
+function plural(
+  n: number,
+  locale: Locale,
+  de: [string, string],
+  en: [string, string],
+): string {
+  const [one, many] = locale === 'de' ? de : en;
+  return `${n} ${n === 1 ? one : many}`;
+}
+
 export function formatAge(birthDate: ISODate, locale: Locale, at: ISODate = todayISO()): string {
   const days = daysBetween(birthDate, at);
   if (days < 0) return '';
-  if (days < 14) return locale === 'de' ? `${days} Tage` : `${days} days`;
+  if (days < 14) return plural(days, locale, ['Tag', 'Tage'], ['day', 'days']);
   if (days < 60) {
     const w = Math.floor(days / 7);
-    return locale === 'de' ? `${w} Wochen` : `${w} weeks`;
+    return plural(w, locale, ['Woche', 'Wochen'], ['week', 'weeks']);
   }
   const months = Math.floor(ageInMonths(birthDate, at));
-  if (months < 24) return locale === 'de' ? `${months} Monate` : `${months} months`;
+  if (months < 24) return plural(months, locale, ['Monat', 'Monate'], ['month', 'months']);
   const years = Math.floor(months / 12);
   const rest = months % 12;
   if (locale === 'de') {
-    return rest === 0 ? `${years} Jahre` : `${years} J. ${rest} Mon.`;
+    return rest === 0 ? plural(years, locale, ['Jahr', 'Jahre'], ['year', 'years'])
+      : `${years} J. ${rest} Mon.`;
   }
-  return rest === 0 ? `${years} years` : `${years} yrs ${rest} mos`;
+  return rest === 0
+    ? plural(years, locale, ['Jahr', 'Jahre'], ['year', 'years'])
+    : `${years} yrs ${rest} mos`;
 }
 
 const NAMES = {

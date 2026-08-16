@@ -60,8 +60,22 @@
   --surface-2: #ede0d6;
 
   --surface-glass: rgba(255, 255, 255, 0.18);
-  --chrome-glass: rgba(255, 255, 255, 0.4);
+  /*
+   * Kopfzeile, Fußnavigation und Blätter liegen ÜBER dem Inhalt. Ein dünner
+   * Schleier lässt den Text darunter scharf durchscheinen — zwei Textebenen
+   * übereinander sind nicht mehr lesbar, sondern nur noch unruhig. Sie tragen
+   * deshalb einen Ton statt reinem Weiß und deutlich mehr Deckkraft.
+   */
+  --chrome-glass: rgba(238, 227, 218, 0.93);
+  --sheet-glass: rgba(242, 233, 226, 0.92);
   --glass-blur: 24px;
+  /*
+   * Hinter einem offenen Blatt wird der ganze Bildschirm unscharf. Das ist
+   * kein Schmuck: Ein Blatt ist modal, und alles dahinter ist in diesem Moment
+   * nicht bedienbar. Es soll auch nicht mehr gelesen werden können.
+   */
+  --backdrop-blur: 28px;
+  --backdrop-tint: rgba(38, 34, 35, 0.55);
   --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.55),
     inset 0 -1px 0 rgba(74, 47, 38, 0.12);
 
@@ -127,7 +141,9 @@
   --surface-2: #3f322a;
 
   --surface-glass: rgba(255, 255, 255, 0.07);
-  --chrome-glass: rgba(28, 22, 19, 0.72);
+  --chrome-glass: rgba(26, 20, 17, 0.93);
+  --sheet-glass: rgba(30, 24, 20, 0.97);
+  --backdrop-tint: rgba(0, 0, 0, 0.62);
   --glass-sheen: inset 0 1px 0 rgba(255, 255, 255, 0.13),
     inset 0 -1px 0 rgba(0, 0, 0, 0.35);
 

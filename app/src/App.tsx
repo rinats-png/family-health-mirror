@@ -76,7 +76,13 @@ function Shell() {
         <button
           type="button"
           className="child-switch"
-          onClick={() => setChildPicker(true)}
+          onClick={() => {
+            // Der Rückgängig-Hinweis liegt über dem Blatt und verdeckte sonst
+            // dessen unteren Rand.
+            window.clearTimeout(undoTimer.current);
+            setUndoId(null);
+            setChildPicker(true);
+          }}
           aria-haspopup="dialog"
           aria-label={`${activeChild.name} — ${t('childPick')}`}
         >
